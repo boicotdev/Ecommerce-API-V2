@@ -1,9 +1,9 @@
 # Ignorar archivos y directorios generados por Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
-*.pyc
+*.py[cod]
 
 # Ignorar bases de datos SQLite
 *.sqlite3
