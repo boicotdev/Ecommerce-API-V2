@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import check_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from orders.models import Order
+from shipments.models import DeliveryAddress
 from .models import User, Comment
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -32,18 +33,41 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    orders = serializers.SerializerMethodField()
     dni = serializers.CharField()
+    orders = serializers.SerializerMethodField()
+    pending_orders_counter = serializers.SerializerMethodField()
+    addresses_counter = serializers.SerializerMethodField()
+    review_counter = serializers.SerializerMethodField()
+
 
     def get_orders(self, obj):
         user = obj
         count_orders = Order.objects.filter(user=user)
         return len(count_orders)
 
+    def get_pending_orders_counter(self, obj):
+        user = obj
+        count_orders = Order.objects.filter(user=user, status='PENDING')
+        return len(count_orders)
+
+    def get_addresses_counter(self, obj):
+        try:
+            return DeliveryAddress.objects.filter(customer=obj).count()
+        except Exception as e:
+            return 0
+
+    def get_review_counter(self, obj):
+        try:
+            return Comment.objects.filter(user=obj).count()
+        except Exception as e:
+            return 0
+
     class Meta:
         model = User
         fields = ["dni", 'username', 'email', 'password',
-                  'first_name', 'last_name', 'avatar', 'phone', 'address', 'rol', 'date_joined', 'last_login', 'is_staff', 'is_superuser', 'orders']
+                  'first_name', 'last_name', 'avatar', 'phone', 'address', 'rol', 'date_joined',
+                  'last_login', 'is_staff', 'is_superuser', 'orders', 'pending_orders_counter',
+                  'addresses_counter', 'review_counter']
         extra_kwargs = {
             'password': {'write_only': True}
         }

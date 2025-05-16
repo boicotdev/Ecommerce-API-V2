@@ -45,6 +45,8 @@ class User(AbstractUser):
 
 
 
+
+#TODO: DEPRECATED
 class CustomerInfo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer_addresses")
     full_name = models.CharField(max_length=55)
