@@ -262,7 +262,6 @@ class MercadoPagoWebhookView(APIView):
             payment_id = request.data.get('data', {}).get('id')
             if not payment_id:
                 return Response({'error': 'ID de pago no proporcionado'}, status=status.HTTP_400_BAD_REQUEST)
-            print('Payment ID', payment_id)
             # Instanciar SDK
             try:
                 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
@@ -280,9 +279,11 @@ class MercadoPagoWebhookView(APIView):
 
             # Extraer información relevante
             info = self.extract_payment_data(payment_data)
+            print('Payment ID', payment_id)
+            print('Payment Data', info)
 
             # Buscar orden pendiente del usuario
-            order = Order.objects.filter(id='AVBLC-839838').first()
+            order = Order.objects.filter(id=info['external_reference']).first()
             if not order:
                 return Response({'error': 'No se encontró una orden pendiente para este usuario'}, status=status.HTTP_404_NOT_FOUND)
 
