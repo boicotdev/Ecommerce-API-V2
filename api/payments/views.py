@@ -23,12 +23,11 @@ from products.permissions import AdminPermissions
 from shipments.models import Shipment
 from payments.models import Payment, Coupon
 from .serializers import PaymentSerializer, CouponSerializer
-
 MP_ACCESS_TOKEN = config('MERCADO_PAGO_ACCESS_TOKEN')
 
 class CreatePaymentPreference(APIView):
     def post(self, request):
-        sdk = mercadopago.SDK(config('MERCADO_PAGO_ACCESS_TOKEN'))
+        sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
         user = request.user
         items = request.data.get('items', [])
         shipping_info = request.data.pop('shipping_info', None)
@@ -119,6 +118,7 @@ class CreatePaymentPreference(APIView):
                 {'detail': 'Error creating preference!', 'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
 
 class MercadoPagoPaymentView(APIView):
     permission_classes = [IsAuthenticated]
