@@ -88,7 +88,7 @@ class CreatePaymentPreference(APIView):
                 'pending': 'https://c090-2800-484-d584-6100-3cfc-6883-c1ed-f501.ngrok-free.app/api/api/v1/pago-pendiente/'
             },
             'auto_return': 'approved',
-            'notification_url': notification_url or 'https://c090-2800-484-d584-6100-3cfc-6883-c1ed-f501.ngrok-free.app/api/v1/webhook/mercadopago/',
+            'notification_url': notification_url or str(config('DEFAULT_NOTIFICATION_URL')),
             'statement_descriptor': 'AVOBERRY',
             'external_reference': f'{order.id}',
             'expires': False,
