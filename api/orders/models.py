@@ -1,6 +1,22 @@
+import random
+import string
+
 from django.db import models
 
 from products.models import Product, UnitOfMeasure
+
+
+def generate_order_id(user_dni):
+    suffix = str(user_dni)[-5:]
+    letters = ''.join(random.choices(string.ascii_uppercase, k=2))
+    return f"AVB{letters}{suffix}"
+
+
+def generate_unique_order_id(user_dni):
+    while True:
+        custom_id = generate_order_id(user_dni)
+        if not Order.objects.filter(id=custom_id).exists():
+            return custom_id
 
 
 # Create your models here.
@@ -27,7 +43,7 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:  # Solo generar el ID si no existe
             user_dni = getattr(self.user, 'dni', "00000000")  # Obtener el DNI del usuario o usar por defecto
-            self.id = 'scjcjcjcjs'
+            self.id = generate_unique_order_id(user_dni)
 
         super().save(*args, **kwargs)
 
