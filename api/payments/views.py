@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.response import Response
-from weasyprint import HTML
+#from weasyprint import HTML
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView, Response
@@ -213,36 +213,37 @@ class PaymentDetailsViewView(APIView):
             return Response({'message': str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GenerateSalesReportView(APIView):
-    def get(self, request, order_id):
-        '''Genera un reporte PDF para una venta específica.'''
-        try:
-            sale = Payment.objects.select_related('order').get(order__id=order_id)
-            order = sale.order  # Ya se obtuvo con select_related
-            order_products = order.orderproduct_set.all()
-            total = sum([item.price * item.quantity for item in order_products])
-            total += 5000
-            # Formatear el total con separación cada 3 cifras (estilo colombiano)
-            total_formatted = '{:,.0f}'.format(sale.payment_amount).replace(',', '.')
-        except Payment.DoesNotExist:
-            return HttpResponse('Pago no encontrado', status=404)
-        except Order.DoesNotExist:
-            return HttpResponse('Orden no encontrada', status=404)
-
-        # Renderizar la plantilla HTML con datos
-        html_string = render_to_string('sales_report.html', {'sale': sale,
-                                                                                'items': order_products,
-                                                                                'total': total_formatted})
-
-        # Generar PDF
-        pdf_file = BytesIO()
-        HTML(string=html_string).write_pdf(pdf_file)
-
-        # Responder con el PDF
-        pdf_file.seek(0)
-        response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename=\'Factura_{order.id}.pdf'
-        return response
-
+    pass
+    # def get(self, request, order_id):
+    #     '''Genera un reporte PDF para una venta específica.'''
+    #     try:
+    #         sale = Payment.objects.select_related('order').get(order__id=order_id)
+    #         order = sale.order  # Ya se obtuvo con select_related
+    #         order_products = order.orderproduct_set.all()
+    #         total = sum([item.price * item.quantity for item in order_products])
+    #         total += 5000
+    #         # Formatear el total con separación cada 3 cifras (estilo colombiano)
+    #         total_formatted = '{:,.0f}'.format(sale.payment_amount).replace(',', '.')
+    #     except Payment.DoesNotExist:
+    #         return HttpResponse('Pago no encontrado', status=404)
+    #     except Order.DoesNotExist:
+    #         return HttpResponse('Orden no encontrada', status=404)
+    #
+    #     # Renderizar la plantilla HTML con datos
+    #     html_string = render_to_string('sales_report.html', {'sale': sale,
+    #                                                                             'items': order_products,
+    #                                                                             'total': total_formatted})
+    #
+    #     # Generar PDF
+    #     pdf_file = BytesIO()
+    #     HTML(string=html_string).write_pdf(pdf_file)
+    #
+    #     # Responder con el PDF
+    #     pdf_file.seek(0)
+    #     response = HttpResponse(pdf_file, content_type='application/pdf')
+    #     response['Content-Disposition'] = f'attachment; filename=\'Factura_{order.id}.pdf'
+    #     return response
+    #
 
 
 class MercadoPagoWebhookView(APIView):
