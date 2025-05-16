@@ -112,8 +112,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 CORS_ALLOWED_ORIGINS = str(config("CORS_ALLOWED_ORIGINS")).split(',')
+CSRF_TRUSTED_ORIGINS = str(config("CSRF_TRUSTED_ORIGINS")).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
 
