@@ -65,20 +65,20 @@ class CreatePaymentPreference(APIView):
         preference_data = {
             'items': items,
             'payer': {
-                'name': 'Carlos',
-                'surname': 'Guzman',
-                'email': 'carlos.guzmanscg7@gmail.com',
+                'name': f'{user.first_name} {user.last_name}',
+                'surname': user.last_name,
+                'email': user.email,
                 'phone': {
                     'area_code': '57',
-                    'number': '3236283340'
+                    'number': shipping_info['phone']
                 },
                 'identification': {
                     'type': 'CC',
-                    'number': '1005827946'
+                    'number': user.dni
                 },
                 'address': {
-                    'zip_code': '110111',
-                    'street_name': 'Calle 123',
+                    'zip_code': shipping_info['postalCode'],
+                    'street_name': shipping_info['street'],
                     'street_number': 45
                 }
             },
@@ -115,10 +115,14 @@ class CreatePaymentPreference(APIView):
                 status=status.HTTP_201_CREATED
             )
         except Exception as e:
+            import traceback
+            traceback_str = traceback.format_exc()
+            print("ERROR:", traceback_str)
             return Response(
-                {'detail': 'Error creating preference!', 'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+                {'detail': 'Error interno en el servidor', 'error': str(e), 'trace': traceback_str},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
 
 class MercadoPagoPaymentView(APIView):
     permission_classes = [IsAuthenticated]
