@@ -1,7 +1,8 @@
+from ast import mod
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.contrib.auth.models import Group, Permission
-
+import uuid
 from orders.models import Order
 from shipments.models import Shipment
 
@@ -73,3 +74,17 @@ class Comment(models.Model):
     
     def __str__(self):
         return f"Comentario del usuario {self.user.username} | publicado {self.pub_date}"
+
+
+#User profile settingss
+class UserProfileSettings(models.Model):
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='ownership')
+    wants_receive_notifications = models.BooleanField(default=True)
+    wants_receive_order_updates_notifications = models.BooleanField(default=True)
+    wants_receive_order_updates_notifications = models.BooleanField(default=True)
+    has_regard = models.BooleanField(default=False)
+    shares = models.IntegerField(default=0)
+    public_key = models.CharField(max_length=100, editable=False, default=str(uuid.uuid4)[15:])
+    referrals_who_was_purchased = models.IntegerField(default=0)
+    receive_monthly_newsletter = models.BooleanField(default=True)
+

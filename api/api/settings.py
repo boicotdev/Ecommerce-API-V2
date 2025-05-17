@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'shipments',
     'orders',
     'purchases',
-    'carts'
+    'carts',
+    'reviews'
 ]
 # Application definition
 
@@ -122,7 +123,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'America/Bogota'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
