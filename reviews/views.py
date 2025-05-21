@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from products.models import Product
 from .models import ProductReview, ReviewResponse
 from .serializers import ProductReviewSerializer, ProductReviewResponseSerializer
 from reviews.permissions import IsOwnershipData, IsOwnerOfReview
-
 
 class ProductReviewAPIView(APIView):
     permission_classes = [IsOwnershipData, IsOwnerOfReview]
@@ -86,3 +86,24 @@ class ProductReviewResponseAPIView(APIView):
         response = self.get_object(pk)
         response.delete()
         return Response({'message': 'Response was deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class RetrieveProductReviews(APIView):
+    def get(self, request, pk=None):
+        if pk:
+            reviews = ProductReview.objects.filter(product__sku=pk)
+
+            if not reviews.exists():
+                return Response(
+                    {"detail": "No reviews found for this product."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            serializer = ProductReviewSerializer(reviews, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        else:
+            reviews = ProductReview.objects.filter(user=request.user)
+            serializer = ProductReviewSerializer(reviews, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+

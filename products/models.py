@@ -36,31 +36,26 @@ class UnitOfMeasure(models.Model):
 
 class Product(models.Model):
     sku = models.CharField(max_length=30, primary_key=True)
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=50)
     description = models.TextField(max_length=1024)
     price = models.FloatField()
-    stock = models.IntegerField(default=1)
-    measure_unity = models.ForeignKey(UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL, verbose_name="unity")
+    discount_price = models.FloatField(blank=True, null=True)
+    purchase_price = models.FloatField(default=0)
+
+    stock = models.PositiveIntegerField(default=1)
+    unit = models.ForeignKey(UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL, verbose_name="unit")
     category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL)
-    rank = models.IntegerField(default=0)
+
+    score = models.IntegerField(blank=True, null=True)  # Consider usar Decimal con validación
     recommended = models.BooleanField(default=False)
     best_seller = models.BooleanField(default=False)
-    score = models.IntegerField(blank=True, null=True)
+
     slug = models.SlugField(blank=True, null=True)
-    has_discount = models.BooleanField(default=False, null=True, blank=True)
-    purchase_price = models.FloatField(default=0, blank=True, null=True)
-    discount_price = models.FloatField(default=0, blank=True, null=True)
-    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    # ------------------------ images --------------------
+    last_updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
     main_image = models.ImageField(
-        upload_to="products/", default="products/dummie_image.jpeg"
-    )
-    first_image = models.ImageField(
-        upload_to="products/", default="products/dummie_image.jpeg"
-    )
-    second_image = models.ImageField(
         upload_to="products/", default="products/dummie_image.jpeg"
     )
 
     def __str__(self):
-        return f"Product: {self.name} (SKU: {self.sku}, Stock: {self.stock} KG, Price: ${self.price})"
+        return f"Product: {self.name} (SKU: {self.sku}, Stock: {self.stock} {self.unit}, Price: ${self.price})"

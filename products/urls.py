@@ -27,6 +27,4 @@ urlpatterns = [
     path('products/product/details/', ProductDetailsView.as_view()), #retrieve a single products
     path('products/product/update/', ProductUpdateView.as_view()),
     path('products/product/remove/', ProductRemoveView.as_view()), # remove a single product
-
-
 ]
