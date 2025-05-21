@@ -6,7 +6,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from orders.models import Order
-from shipments.models import DeliveryAddress
+from reviews.models import ProductReview
+from shipments.models import DeliveryAddress, Shipment
 from .models import User, ReferralDiscount
 
 
@@ -42,6 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
     pending_orders_counter = serializers.SerializerMethodField()
     addresses_counter = serializers.SerializerMethodField()
     referrer_code = serializers.CharField(write_only=True, required=False)
+    reviews_counter = serializers.SerializerMethodField()
 
     def get_orders(self, obj):
         user = obj
@@ -50,7 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_pending_orders_counter(self, obj):
         user = obj
-        count_orders = Order.objects.filter(user=user, status='PENDING')
+        count_orders = Shipment.objects.filter(customer=user, status='PENDING')
         return len(count_orders)
 
     def get_addresses_counter(self, obj):
@@ -59,12 +61,18 @@ class UserSerializer(serializers.ModelSerializer):
         except Exception as e:
             return 0
 
+    def get_reviews_counter(self, obj):
+        try:
+            return ProductReview.objects.filter(user=obj).count()
+        except Exception as e:
+            return 0
+
     class Meta:
         model = User
         fields = ['dni', 'username', 'email', 'password',
                   'first_name', 'last_name', 'avatar', 'phone', 'address', 'role', 'date_joined',
                   'last_login', 'is_staff', 'is_superuser', 'orders', 'pending_orders_counter',
-                  'addresses_counter', 'referred_by', 'referral_code', 'referrer_code']
+                  'addresses_counter', 'referred_by', 'referral_code', 'referrer_code', 'reviews_counter']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -122,6 +130,34 @@ class UserSerializer(serializers.ModelSerializer):
                 defaults={'has_discount': True, 'expires_at': expiry_date}
             )
         return user
+
+    def update(self, instance, validated_data):
+        print("📦 [DEBUG - UPDATE] Datos recibidos para actualizar:")
+        for k, v in validated_data.items():
+            print(f"    {k} => {v}")
+
+        for attr, value in validated_data.items():
+            old_value = getattr(instance, attr, None)
+            print(f"🔄 [DEBUG] {attr}: {old_value} -> {value}")
+            setattr(instance, attr, value)
+
+        password = validated_data.get('password', None)
+        if password:
+            print("🔐 [DEBUG] Seteando contraseña nueva")
+            instance.set_password(password)
+
+        referrer_code = validated_data.get('referrer_code')
+        if referrer_code:
+            try:
+                referrer = User.objects.get(referral_code=referrer_code)
+                instance.referred_by = referrer
+                print(f"🎯 [DEBUG] Código de referido válido: {referrer_code}")
+            except User.DoesNotExist:
+                print(f"🚫 [DEBUG] Código de referido inválido: {referrer_code}")
+
+        instance.save()
+        print("✅ [DEBUG] Usuario guardado")
+        return instance
 
 
 class ChangePasswordSerializer(serializers.Serializer):

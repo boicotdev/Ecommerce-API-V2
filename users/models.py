@@ -49,14 +49,14 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
     def __str__(self) -> str:
-        return f'{self.username}'
+        return f'{self.username}-{self.dni}'
 
     def save(self, *args, **kwargs):
         if not self.referral_code:
             prefix = 'AVB'
             sufix = self.dni[-4:]
             self.referral_code = f'{prefix}-{sufix}-{str(uuid.uuid4())[:15].upper()}'
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 # User profile settingss
