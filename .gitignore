@@ -1,0 +1,73 @@
+# Ignorar archivos y directorios generados por Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+
+# Ignorar bases de datos SQLite
+*.sqlite3
+
+# Ignorar archivos de entorno virtual
+env/
+venv/
+
+# Ignorar archivos de configuración de entorno
+.env
+
+# Ignorar archivos y directorios de logs
+*.log
+*.log.*
+logs/
+*.out
+
+# Ignorar archivos relacionados con IDEs y editores
+# VS Code
+.vscode/
+*.code-workspace
+# PyCharm
+.idea/
+# JetBrains IDEs
+*.iml
+*.ipr
+*.iws
+# NetBeans
+nbproject/private/
+# Otros editores
+*.swp
+*~
+
+# Ignorar archivos de compilación, cobertura de código y otros generados
+*.bak
+*.tmp
+*.old
+*.orig
+.DS_Store
+.coverage
+coverage.xml
+*.prof
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+docs/_build/
+
+# Ignorar dependencias instaladas por pip
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ignorar archivos generados por herramientas de despliegue
+*.pem
+*.key
+*.crt
+
+#Ignorar archivos estaticos como imagenes y videos
+*.jpg
+*.png
+*.mp4
+*.mp3
+static/media/*
+media/*
