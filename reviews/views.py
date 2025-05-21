@@ -26,6 +26,24 @@ class ProductReviewAPIView(APIView):
             serializer = ProductReviewSerializer(permitted_reviews, many=True)
             return Response(serializer.data)
 
+
+    def post(self, request):
+        serializer = ProductReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)  # asigna el usuario al crear
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None):
+        if not pk:
+            return Response({"detail": "Method PUT require pk."}, status=status.HTTP_400_BAD_REQUEST)
+        review = self.get_object(pk)
+        serializer = ProductReviewSerializer(review, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()  # actualiza la instancia
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, pk):
         review = self.get_object(pk)
         review.delete()

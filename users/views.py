@@ -1,5 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -93,43 +94,43 @@ class UserDetailsView(APIView):
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# update a single user
-class UserUpdateView(APIView):
-    '''
-    Handle a `User` instance edition
-    You must provide a username of the user you want edit
-    '''
-
-    def put(self, request):
-        user_id = request.data.get('dni', None)
-
-        if not user_id:
-            return Response({'message': 'User ID field is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            if User.objects.filter(dni=user_id).exists():
-                user_instance = User.objects.get(dni=user_id)
-                # Pasar el usuario existente al serializador para su actualización
-                user_serializer = UserSerializer(user_instance, data=request.data, partial=True)
-
-                if user_serializer.is_valid():
-                    user_serializer.save()
-                    return Response(user_serializer.data, status=status.HTTP_200_OK)
-
-                return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        except Exception as e:
-            return Response({'message': 'Internal server error!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+# # update a single user
+# class UserUpdateView(APIView):
+#     """
+#     API view to update a single User instance.
+#     - You must provide the `dni` of the user to be updated in the payload.
+#     - Accepts multipart/form-data for file uploads (e.g., avatar).
+#     """
+#     permission_classes = [IsAuthenticated]
+#     parser_classes = [MultiPartParser, FormParser, JSONParser]
+#
+#     def put(self, request):
+#         dni = request.data.get('dni')
+#
+#         if not dni:
+#             return Response(
+#                 {"error": "Field 'dni' is required."},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+#
+#         # Attempt to retrieve the user or return 404
+#         user = get_object_or_404(User, dni=dni)
+#
+#         # Deserialize and validate the incoming data
+#         serializer = UserSerializer(user, data=request.data, partial=True)
+#
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
 class ClientUserListView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         try:
-            queryset = User.objects.filter(rol='Cliente')
+            queryset = User.objects.filter(role='client')
             paginator = LimitOffsetPagination()
             paginated_queryset = paginator.paginate_queryset(queryset, request)
             serializer = UserSerializer(paginated_queryset, many=True)
@@ -137,6 +138,49 @@ class ClientUserListView(APIView):
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class UserUpdateView(APIView):
+    '''
+    Actualiza un usuario existente por su DNI.
+    '''
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def put(self, request):
+        def flatten_data(data):
+            return {key: value[0] if isinstance(value, list) else value for key, value in data.items()}
+
+        raw_data = request.data
+        print("📥 [DEBUG] request.data:")
+        for k in raw_data:
+            print(f"  - {k}: {raw_data.get(k)}")
+
+        data = flatten_data(raw_data)
+
+        dni = data.get('dni')
+        if not dni:
+            return Response({'message': 'Falta el campo dni'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_instance = User.objects.get(dni=dni)
+            print(f"✅ [DEBUG] Usuario encontrado: {user_instance.username}")
+
+            serializer = UserSerializer(user_instance, data=data, partial=True)
+            if serializer.is_valid():
+                updated_user = serializer.save()
+                print("✅ [DEBUG] Usuario actualizado con éxito")
+                return Response(UserSerializer(updated_user).data, status=status.HTTP_200_OK)
+            else:
+                print("❌ [DEBUG] Errores de validación:")
+                print(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            print("❌ [DEBUG] Usuario no encontrado")
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            print(f"🔥 [ERROR] Excepción no controlada: {str(e)}")
+            return Response({'message': 'Error interno del servidor'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # remove a single user
 class UserDeleteView(APIView):

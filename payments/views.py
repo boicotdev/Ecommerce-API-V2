@@ -22,143 +22,6 @@ from .serializers import PaymentSerializer, CouponSerializer
 MP_ACCESS_TOKEN = config('MERCADO_PAGO_ACCESS_TOKEN')
 
 
-# class CreatePaymentPreference(APIView):
-#     def post(self, request):
-#         sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
-#         user = request.user
-#         items = request.data.get('items', [])
-#         shipping_info = request.data.pop('shipping_info', None)
-#         notification_url = request.data.get('notification_url')
-#
-#         order, _ = Order.objects.get_or_create(user=user, status='PENDING')
-#         cart, _ = Cart.objects.get_or_create(user=user)
-#
-#         total_check = 0  # Total antes del descuento
-#
-#         processed_items = []
-#
-#         for item in items:
-#             product = Product.objects.get(sku=item['id'])
-#
-#             unit_price = item['unit_price']
-#             quantity = item['quantity']
-#             subtotal = unit_price * quantity
-#             total_check += subtotal
-#
-#             # OrderProduct
-#             order_product, created = OrderProduct.objects.get_or_create(
-#                 order=order,
-#                 product=product,
-#                 defaults={'price': unit_price, 'quantity': quantity},
-#             )
-#             if not created:
-#                 order_product.quantity = quantity
-#                 order_product.save()
-#
-#             # ProductCart
-#             product_cart, created = ProductCart.objects.get_or_create(
-#                 cart=cart,
-#                 product=product,
-#                 defaults={'quantity': quantity}
-#             )
-#             if not created:
-#                 product_cart.quantity = quantity
-#                 product_cart.save()
-#
-#             # Preparamos el item para MercadoPago (por ahora sin aplicar el descuento)
-#             processed_items.append({
-#                 'id': item['id'],
-#                 'title': product.name,
-#                 'quantity': quantity,
-#                 'currency_id': 'COP',
-#                 'unit_price': unit_price  # se ajustará más adelante si hay descuento
-#             })
-#
-#         # Verificamos y aplicamos descuento si existe
-#         try:
-#             discount = ReferralDiscount.objects.get(user=user)
-#             if discount.is_valid():
-#                 print('Discount is valid')
-#                 total_with_discount = total_check * 0.9  # 10% off
-#                 discount.has_discount = False
-#                 discount.expires_at = None
-#                 discount.save()
-#
-#                 # Ajustar los precios unitarios proporcionalmente
-#                 descuento_unitario = total_with_discount / total_check
-#                 for item in processed_items:
-#                     item['unit_price'] = round(item['unit_price'] * descuento_unitario, 2)
-#             else:
-#                 print('discount is not valid')
-#         except ReferralDiscount.DoesNotExist:
-#             print("No hay descuento para el usuario actual.")
-#             pass  # No hay descuento
-#
-#         preference_data = {
-#             'items': processed_items,
-#             'payer': {
-#                 'name': f'{user.first_name} {user.last_name}',
-#                 'surname': user.last_name,
-#                 'email': user.email,
-#                 'phone': {
-#                     'area_code': '57',
-#                     'number': shipping_info['phone']
-#                 },
-#                 'identification': {
-#                     'type': 'CC',
-#                     'number': user.dni
-#                 },
-#                 'address': {
-#                     'zip_code': shipping_info['postalCode'],
-#                     'street_name': shipping_info['street'],
-#                     'street_number': 45
-#                 }
-#             },
-#             'back_urls': {
-#                 'success': 'https://9fe7-2800-484-3681-7400-49e4-8003-954-b3df.ngrok-free.app/payments/success/',
-#                 'failure': 'https://9fe7-2800-484-3681-7400-49e4-8003-954-b3df.ngrok-free.app/payments/failure/',
-#                 'pending': 'https://9fe7-2800-484-3681-7400-49e4-8003-954-b3df.ngrok-free.app/payments/pending/'
-#             },
-#             'auto_return': 'approved',
-#             'notification_url': notification_url or str(config('DEFAULT_NOTIFICATION_URL')),
-#             'statement_descriptor': 'AVOBERRY',
-#             'external_reference': f'{order.id}',
-#             'expires': False,
-#             'payment_methods': {
-#                 'excluded_payment_methods': [],
-#                 'excluded_payment_types': [],
-#                 'installments': 1,
-#                 'default_installments': 1
-#             },
-#             'currency_id': 'COP'
-#         }
-#         print('items', preference_data['items'])
-#
-#         try:
-#             preference_response = sdk.preference().create(preference_data)
-#             if preference_response['status'] != 201:
-#                 return Response(
-#                     {'error': preference_response['response']},
-#                     status=status.HTTP_400_BAD_REQUEST
-#                 )
-#
-#             preference = preference_response['response']
-#             return Response(
-#                 {'preference_id': preference.get('id'), 'order': order.id},
-#                 status=status.HTTP_201_CREATED
-#             )
-#
-#         except Exception as e:
-#             import traceback
-#             traceback_str = traceback.format_exc()
-#             print("ERROR:", traceback_str)
-#             return Response(
-#                 {'detail': 'Error interno en el servidor', 'error': str(e), 'trace': traceback_str},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#             )
-
-
-
 class CreatePaymentPreference(APIView):
     def post(self, request):
         sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
@@ -170,7 +33,7 @@ class CreatePaymentPreference(APIView):
         order, _ = Order.objects.get_or_create(user=user, status='PENDING')
         cart, _ = Cart.objects.get_or_create(user=user)
 
-        subtotal = 0
+        subtotal = sum([item.price * item.quantity for item in OrderProduct.objects.filter(order=order)])
         discount_value = 0
         discount_applied = False
         discount_type = 'NONE'
@@ -219,7 +82,7 @@ class CreatePaymentPreference(APIView):
             discount = ReferralDiscount.objects.get(user=user)
             if discount.is_valid():
                 discount_applied = True
-                discount_type =  'FIRST_PURCHASE' if  self.is_first_purchase(user) else "REFERRAL"
+                discount_type = 'FIRST_PURCHASE' if self.is_first_purchase(user) else "REFERRAL"
                 discount_value = round(subtotal * 0.10, 2)
 
                 # Ajustar los precios unitarios proporcionalmente
@@ -456,8 +319,8 @@ class MercadoPagoWebhookView(APIView):
                     "payment_amount": info.get("transaction_amount") or 0,
                     "net_received_amount": info.get("net_received_amount") or 0,
                     "taxes_amount": (
-                        (info.get("transaction_amount") or 0) -
-                        (info.get("net_received_amount") or 0)
+                            (info.get("transaction_amount") or 0) -
+                            (info.get("net_received_amount") or 0)
                     ),
                     "currency_id": info.get("currency_id") or 'COP',
                     "payment_method": (info.get("payment_method_id") or 'ACCOUNT_MONEY').upper(),
@@ -539,7 +402,6 @@ class MercadoPagoWebhookView(APIView):
             # Productos comprados
             'items': additional_info.get('items', []),
         }
-
 
 
 class CouponsCreateView(APIView):
