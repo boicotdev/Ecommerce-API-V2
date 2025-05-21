@@ -15,6 +15,7 @@ class ProductReviewResponseSerializer(serializers.ModelSerializer):
 
         response = ReviewResponse.objects.create(**validated_data)
         product_review.responses.add(response)
+        #TODO: Handle increase o decrease score when user review
         return response
 
 
