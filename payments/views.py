@@ -369,7 +369,7 @@ class MercadoPagoWebhookView(APIView):
                 "order_items": items,
                 'image_url': 'https://ecommerce-api-v2-production.up.railway.app'
             }
-            send_email('Gracias por tu compra', f'carlos.guzmanscg7@gmail.com', [],
+            send_email('Gracias por tu compra', f'{order.user.email}', [],
                        context,
                        'email/order-confirmation.html', success_message='Your purchase was created successfully')
 
