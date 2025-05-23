@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Bienvenido a Avoberry!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .header {
+      padding: 40px 0;
+      text-align: center;
+      background-color: #10b981;
+      background-image: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      position: relative;
+    }
+
+    .header-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://i.imgur.com/8JIrXvx.png');
+      background-size: cover;
+      opacity: 0.1;
+    }
+
+    .logo {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 16px;
+    }
+
+    .logo img {
+      width: 140px;
+      height: auto;
+    }
+
+    .header h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+
+    .content {
+      padding: 40px 32px;
+      text-align: left;
+    }
+
+    .content h2 {
+      color: #0f172a;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .content p {
+      margin-bottom: 24px;
+      color: #475569;
+      font-size: 16px;
+    }
+
+    .content strong {
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .benefits {
+      margin: 32px 0;
+      padding: 24px;
+      background-color: #f1f5f9;
+      border-radius: 12px;
+    }
+
+    .benefits h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .benefit-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      background-color: #10b981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .benefit-text {
+      flex: 1;
+      font-size: 15px;
+      color: #475569;
+    }
+
+    .cta-button {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 32px auto;
+      padding: 16px 24px;
+      background-color: #10b981;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+
+    .cta-button:hover {
+      background-color: #059669;
+    }
+
+    .divider {
+      height: 1px;
+      background-color: #e2e8f0;
+      margin: 32px 0;
+    }
+
+    .social-links {
+      text-align: center;
+      margin: 32px 0;
+    }
+
+    .social-links p {
+      margin-bottom: 16px;
+      font-size: 15px;
+      color: #64748b;
+    }
+
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .social-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background-color: #f1f5f9;
+      border-radius: 50%;
+      color: #10b981;
+      text-decoration: none;
+      font-size: 18px;
+      transition: background-color 0.2s;
+    }
+
+    .social-icon:hover {
+      background-color: #e2e8f0;
+    }
+
+    .footer {
+      font-size: 13px;
+      text-align: center;
+      color: #94a3b8;
+      padding: 24px 32px;
+      border-top: 1px solid #f1f5f9;
+      background-color: #f8fafc;
+    }
+
+    .footer p {
+      margin-bottom: 8px;
+    }
+
+    .footer p:last-child {
+      margin-bottom: 0;
+    }
+
+    .footer a {
+      color: #64748b;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .wrapper {
+        padding: 12px;
+      }
+
+      .content {
+        padding: 32px 24px;
+      }
+
+      .header {
+        padding: 32px 0;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .benefits {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="header-pattern"></div>
+        <div class="logo">
+          <img src="https://avoberry.vercel.app/images/logo-without-bg.png" alt="Avoberry Logo" />
+        </div>
+        <h1>¡Bienvenido a Avoberry!</h1>
+      </div>
+
+      <div class="content">
+        <h2>Hola {{ user |default:"amigo(a)" }},</h2>
+        <p>
+          ¡Gracias por unirte a <strong>Avoberry</strong>! Estamos encantados de tenerte con nosotros y queremos darte la bienvenida a nuestra comunidad de amantes de productos frescos y orgánicos.
+        </p>
+
+        <p>
+          Tu cuenta ha sido creada exitosamente y ahora puedes disfrutar de todos los beneficios que Avoberry tiene para ti.
+        </p>
+
+        <div class="benefits">
+          <h3>Lo que puedes hacer ahora:</h3>
+
+          <div class="benefit-item">
+            <div class="benefit-icon">✓</div>
+            <div class="benefit-text">
+              <strong>Explorar nuestra tienda</strong> con productos frescos, orgánicos y de temporada
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-icon">✓</div>
+            <div class="benefit-text">
+              <strong>Recibir en tu hogar</strong> los mejores productos directamente del campo
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-icon">✓</div>
+            <div class="benefit-text">
+              <strong>Acceder a ofertas exclusivas</strong> y descuentos especiales para miembros
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Te invitamos a visitar nuestra tienda y comenzar a disfrutar de la experiencia Avoberry. ¡Estamos seguros que te encantará!
+        </p>
+
+        <a href="{{ site_url }}" class="cta-button">Visitar Avoberry</a>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="social-links">
+        <p>Síguenos en redes sociales:</p>
+        <div class="social-icons">
+          <a href="https://facebook.com/avoberry" class="social-icon" target="_blank">f</a>
+          <a href="https://instagram.com/avoberry" class="social-icon" target="_blank">i</a>
+          <a href="https://wa.me/573001112233" class="social-icon" target="_blank">w</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Este mensaje fue enviado automáticamente. Por favor, no respondas a este correo.</p>
+        <p>Si tienes alguna pregunta, contáctanos a <a href="mailto:hola@avoberry.com.co">hola@avoberry.com.co</a></p>
+        <p>&copy; {{ year }} Avoberry. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

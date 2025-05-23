@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 import mercadopago
@@ -17,6 +18,7 @@ from products.models import (
 from products.permissions import AdminPermissions
 from shipments.models import Shipment
 from users.models import ReferralDiscount
+from utils.utils import send_email
 from .serializers import PaymentSerializer, CouponSerializer
 
 MP_ACCESS_TOKEN = config('MERCADO_PAGO_ACCESS_TOKEN')
@@ -337,13 +339,39 @@ class MercadoPagoWebhookView(APIView):
             )
 
             # Crear envío
-            Shipment.objects.create(
+            shipping_address = Shipment.objects.create(
                 customer=order.user,
                 order=order,
                 shipment_address=f"{info.get('payer_street_name', '')} - {info.get('payer_street_number', '')}".strip(),
                 shipment_city='Bogotá',
                 shipment_date_post_code=info.get('payer_zip_code', '110111')
             )
+            items = OrderProduct.objects.filter(order=order)
+            context = {
+                'user': request.data.get('first_name'),
+                "subscriber_name": request.data.get('email'),
+                "site_url": "https://avoberry.vercel.app/",
+                "year": datetime.datetime.now().year,
+                'order_date': order.creation_date,
+                'customer_name': f'{order.user.first_name} {order.user.last_name}',
+                'payment_method': info['payment_method_id'],
+                'delivery_date': 'Pending',
+                'subtotal': payment_obj.payment_amount,
+                'shipping_cost': 5000,
+                'discount': order.discount_value,
+                'total': payment_obj.payment_amount,
+                'shipping_address': shipping_address,
+                'phone': order.user.phone,
+                'tracking_number': shipping_address.id,
+                'order_url': 'https://avoberry.vercel.app/',
+                'faq_url': 'https://avoberry.vercel.app/contact',
+                'contact_url': 'https://avoberry.vercel.app/contact',
+                "order_items": items,
+                'image_url': 'https://ecommerce-api-v2-production.up.railway.app'
+            }
+            send_email('Gracias por tu compra', f'carlos.guzmanscg7@gmail.com', [],
+                       context,
+                       'email/order-confirmation.html', success_message='Your purchase was created successfully')
 
             # Actualizar el stock
             with atomic():
