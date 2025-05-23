@@ -7,7 +7,7 @@ from orders.models import Order
 
 
 def set_tracking_number():
-    return f'AVB-{str(uuid.uuid4())[:15].replace("-", "")}'
+    return f'AVB-{str(uuid.uuid4())[:15].replace("-", "")}'.upper()
 
 class Shipment(models.Model):
     id = models.CharField(max_length=100, default=set_tracking_number, primary_key=True)
@@ -17,7 +17,7 @@ class Shipment(models.Model):
     shipment_address = models.CharField(max_length=255)
     shipment_city = models.CharField(max_length=50)
     postal_code_validator = RegexValidator(regex=r"^\d{4,10}$", message="El código postal debe contener entre 4 y 10 dígitos.")
-    shipment_date_post_code = models.CharField(max_length=10, validators=[postal_code_validator])
+    zip_code = models.CharField(max_length=10, validators=[postal_code_validator])
 
     PENDING = "PENDING"
     SHIPPED = "SHIPPED"

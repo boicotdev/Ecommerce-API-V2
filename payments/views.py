@@ -18,7 +18,7 @@ from products.models import (
 from products.permissions import AdminPermissions
 from shipments.models import Shipment
 from users.models import ReferralDiscount
-from utils.utils import send_email
+from utils.utils import send_email, update_bestseller_status
 from .serializers import PaymentSerializer, CouponSerializer
 
 MP_ACCESS_TOKEN = config('MERCADO_PAGO_ACCESS_TOKEN')
@@ -35,7 +35,7 @@ class CreatePaymentPreference(APIView):
         order, _ = Order.objects.get_or_create(user=user, status='PENDING')
         cart, _ = Cart.objects.get_or_create(user=user)
 
-        subtotal = sum([item.price * item.quantity for item in OrderProduct.objects.filter(order=order)])
+        subtotal = 0
         discount_value = 0
         discount_applied = False
         discount_type = 'NONE'
@@ -346,6 +346,8 @@ class MercadoPagoWebhookView(APIView):
                 shipment_city='Bogotá',
                 shipment_date_post_code=info.get('payer_zip_code', '110111')
             )
+
+            #prepare data to send email when payment is success
             items = OrderProduct.objects.filter(order=order)
             context = {
                 'user': request.data.get('first_name'),
@@ -373,18 +375,26 @@ class MercadoPagoWebhookView(APIView):
                        context,
                        'email/order-confirmation.html', success_message='Your purchase was created successfully')
 
-            # Actualizar el stock
             with atomic():
                 for item in info.get('items', []):
                     sku = item.get('id')
                     quantity = int(item.get('quantity', 0))
                     try:
                         product = Product.objects.select_for_update().get(sku=sku)
-                        if product.stock >= quantity:
-                            product.stock -= quantity
+                        update_bestseller_status(product, 1)
+
+                        # Solo se descuenta lo disponible
+                        deducted_quantity = min(product.stock, quantity)
+
+                        if deducted_quantity > 0:
+                            product.stock -= deducted_quantity
                             product.save()
-                        else:
-                            raise ValueError(f'Stock insuficiente para el producto {product.name}')
+                        #
+                        #     # Opcional: actualizar la cantidad real entregada en la orden
+                        #     item['delivered_quantity'] = deducted_quantity
+                        # else:
+                        #     item['delivered_quantity'] = 0  # No hay stock disponible
+
                     except Product.DoesNotExist:
                         raise ValueError(f'Producto con SKU {sku} no encontrado')
 

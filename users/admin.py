@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.forms import ModelForm
 
-from .models import User, UserProfileSettings, ReferralDiscount
+from .models import User, UserProfileSettings, ReferralDiscount, NewsletterSubscription
 
 
 # Crear un formulario para el admin para asegurar que la contraseña se maneje correctamente
@@ -31,4 +31,4 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(User, CustomUserAdmin)
-admin.site.register([UserProfileSettings, ReferralDiscount])
+admin.site.register([UserProfileSettings, ReferralDiscount, NewsletterSubscription])
