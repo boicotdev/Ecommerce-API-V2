@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -28,9 +29,13 @@ class ProductReviewAPIView(APIView):
 
 
     def post(self, request):
+        print(request.data)
         serializer = ProductReviewSerializer(data=request.data)
         if serializer.is_valid():
+            product = Product.objects.filter(sku=request.data.get('product')).first()
             serializer.save(user=request.user)  # asigna el usuario al crear
+            product.score += request.data.get('rating')
+            product.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -107,3 +112,9 @@ class RetrieveProductReviews(APIView):
             serializer = ProductReviewSerializer(reviews, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class RetrieveAllProductReviews(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def get(self, request):
+        reviews = ProductReview.objects.all()
+        return Response(ProductReviewSerializer(reviews, many=True).data)

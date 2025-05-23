@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from users.models import User
+from users.serializers import UserSerializer
 from .models import ProductReview, ReviewResponse
 
 
@@ -15,8 +17,11 @@ class ProductReviewResponseSerializer(serializers.ModelSerializer):
 
         response = ReviewResponse.objects.create(**validated_data)
         product_review.responses.add(response)
-        #TODO: Handle increase o decrease score when user review
         return response
+
+    def handle_product_rating_change(self, product, rating):
+        product.score = rating
+        product.save()
 
 
 class ReviewResponseSerializer(serializers.ModelSerializer):
@@ -34,6 +39,10 @@ class ReviewResponseSerializer(serializers.ModelSerializer):
         fields = ['id', 'response', 'pub_date', 'publisher']
 
 
+class UserReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'avatar']
 
 class ProductReviewSerializer(serializers.ModelSerializer):
     responses = ReviewResponseSerializer(many=True, read_only=True)
@@ -43,6 +52,7 @@ class ProductReviewSerializer(serializers.ModelSerializer):
         write_only=True,
         source='responses'
     )
+    user = UserReviewSerializer(many=False, read_only=True)
     class Meta:
         model = ProductReview
-        fields = ['id','user', 'product', 'comment', 'rating', 'rated_at', 'last_updated', 'responses','responses_ids']
+        fields = ['id','user', 'product', 'comment', 'rating', 'rated_at', 'last_updated', 'responses','responses_ids', 'user']

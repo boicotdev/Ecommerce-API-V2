@@ -1,6 +1,7 @@
 import datetime
 
 from django.core.mail import EmailMultiAlternatives
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from rest_framework import status, generics
@@ -11,10 +12,11 @@ from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from utils.utils import send_email
-from .models import User
-from .permissions import IsOwnerOrSuperUserPermission
-from .serializers import UserSerializer, CustomTokenObtainPairSerializer, ChangePasswordSerializer
+from utils.utils import send_email, create_user_profile_settings
+from .models import User, UserProfileSettings
+from .permissions import IsOwnerOrSuperUserPermission, IsOwnerOfProfileSettings
+from .serializers import UserSerializer, CustomTokenObtainPairSerializer, ChangePasswordSerializer, \
+    NewsletterSubscriptionSerializer, UserProfileSettingsSerializer
 
 
 # login view
@@ -83,6 +85,8 @@ class UserCreateView(APIView):
                 "site_url": "https://avoberry.vercel.app/",
                 "year": datetime.datetime.now().year
             }
+            # handle user profile settings
+            create_user_profile_settings(request.data.get('dni'))
             send_email("Bienvenido a Avoberry", request.data.get('email'), [], context, "email/welcome-email.html")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -166,13 +170,12 @@ class UserUpdateView(APIView):
             return {key: value[0] if isinstance(value, list) else value for key, value in data.items()}
 
         raw_data = request.data
-        print("📥 [DEBUG] request.data:")
         for k in raw_data:
             print(f"  - {k}: {raw_data.get(k)}")
 
         data = flatten_data(raw_data)
 
-        dni = data.get('dni')
+        dni = data.get('id')
         if not dni:
             return Response({'message': 'Falta el campo dni'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -267,13 +270,41 @@ class NewsletterSubscriptionView(APIView):
             email_msg.attach_alternative(html_content, "text/html")
             email_msg.send()
 
-            return Response(
-                {"message": "Suscripción exitosa. Revisa tu correo para más detalles."},
-                status=status.HTTP_200_OK
-            )
+            serializer = NewsletterSubscriptionSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    {"message": "Subscription successful. Check your email for more details.."},
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(serializer.errors, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response(
                 {"error": f"No se pudo enviar el correo: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class UserProfileSettingsAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerOfProfileSettings]
+
+    def get_object(self, pk):
+        instance = get_object_or_404(UserProfileSettings, user__dni=pk)
+        return instance
+
+    def get(self, request):
+        pk = request.user.dni
+        profile = self.get_object(pk)
+        self.check_object_permissions(profile, request)
+        return Response(UserProfileSettingsSerializer(profile).data)
+
+    def patch(self, request):
+        pk = request.user.dni
+        profile = self.get_object(pk)
+        self.check_object_permissions(profile, request)
+        serializer = UserProfileSettingsSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

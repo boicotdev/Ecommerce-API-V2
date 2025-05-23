@@ -55,7 +55,7 @@ class User(AbstractUser):
         if not self.referral_code:
             prefix = 'AVB'
             sufix = self.dni[-4:]
-            self.referral_code = f'{prefix}-{sufix}-{str(uuid.uuid4())[:15].upper()}'
+            self.referral_code = f'{prefix}-{sufix}-{str(uuid.uuid4()).replace("-", "")[:15].upper()}'
         super().save(*args, **kwargs)
 
 
@@ -67,9 +67,10 @@ class UserProfileSettings(models.Model):
         on_delete=models.CASCADE,
         related_name='profile_settings'
     )
-    wants_receive_notifications = models.BooleanField(default=True)
-    wants_receive_order_updates_notifications = models.BooleanField(default=True)
-    receive_monthly_newsletter = models.BooleanField(default=True)
+    notifications = models.BooleanField(default=True)
+    order_updates_notifications = models.BooleanField(default=True)
+    monthly_newsletter = models.BooleanField(default=True)
+    product_recommendation = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Settings for {self.user.username}"
@@ -86,3 +87,13 @@ class ReferralDiscount(models.Model):
 
     def is_valid(self):
         return self.has_discount and self.expires_at and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f'{self.user.username} - Active = ({self.has_discount}) - {self.expires_at}'
+
+
+class NewsletterSubscription(models.Model):
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return self.email

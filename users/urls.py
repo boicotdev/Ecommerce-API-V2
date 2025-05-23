@@ -7,7 +7,7 @@ from .views import (
     UserDetailsView,
     CustomTokenObtainPairView,
     ClientUserListView, CustomTokenRefreshPairView,
-    LogoutUserView, ChangePasswordView, NewsletterSubscriptionView
+    LogoutUserView, ChangePasswordView, NewsletterSubscriptionView, UserProfileSettingsAPIView
 )
 
 urlpatterns = [
@@ -21,4 +21,6 @@ urlpatterns = [
     path("users/delete/", UserDeleteView.as_view()),  # delete a single user
     path('users/user/change-password/', ChangePasswordView.as_view(), name='change-password'),
     path("newsletter/subscribe/", NewsletterSubscriptionView.as_view(), name="newsletter-subscribe"),
+    path("users/profile/settings/", UserProfileSettingsAPIView.as_view()),
+    path("users/profile/settings/update/", UserProfileSettingsAPIView.as_view()),
 ]
