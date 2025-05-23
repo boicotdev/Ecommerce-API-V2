@@ -1,3 +1,8 @@
+import datetime
+
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from rest_framework import status, generics
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -6,6 +11,7 @@ from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from utils.utils import send_email
 from .models import User
 from .permissions import IsOwnerOrSuperUserPermission
 from .serializers import UserSerializer, CustomTokenObtainPairSerializer, ChangePasswordSerializer
@@ -71,6 +77,13 @@ class UserCreateView(APIView):
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            context = {
+                'user': request.data.get('first_name'),
+                "subscriber_name": request.data.get('email'),
+                "site_url": "https://avoberry.vercel.app/",
+                "year": datetime.datetime.now().year
+            }
+            send_email("Bienvenido a Avoberry", request.data.get('email'), [], context, "email/welcome-email.html")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -125,6 +138,8 @@ class UserDetailsView(APIView):
 #
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #
+
+
 class ClientUserListView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
@@ -137,6 +152,7 @@ class ClientUserListView(APIView):
             return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class UserUpdateView(APIView):
     '''
@@ -182,6 +198,7 @@ class UserUpdateView(APIView):
             print(f"🔥 [ERROR] Excepción no controlada: {str(e)}")
             return Response({'message': 'Error interno del servidor'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 # remove a single user
 class UserDeleteView(APIView):
     '''
@@ -212,3 +229,51 @@ class ChangePasswordView(generics.UpdateAPIView):
             serializer.update_password(request.user)
             return Response({'message': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class NewsletterSubscriptionView(APIView):
+    """
+    API para manejar la suscripción al boletín de Avoberry.
+    Envía un correo de bienvenida al nuevo suscriptor.
+    """
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+
+        if not email:
+            return Response(
+                {"error": "The email address is required to subscribe."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Preparar y enviar el correo
+        subject = "¡Gracias por suscribirte a nuestro boletín!"
+        context = {
+            "subscriber_name": email,
+            "site_url": "https://avoberry.vercel.app/",
+            "year": datetime.datetime.now().year
+        }
+
+        html_content = render_to_string("email/newsletter-subscription.html", context)
+        text_content = strip_tags(html_content)
+
+        try:
+            email_msg = EmailMultiAlternatives(
+                subject,
+                text_content,
+                "no-reply@avoberry.com",
+                [email],
+            )
+            email_msg.attach_alternative(html_content, "text/html")
+            email_msg.send()
+
+            return Response(
+                {"message": "Suscripción exitosa. Revisa tu correo para más detalles."},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": f"No se pudo enviar el correo: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
