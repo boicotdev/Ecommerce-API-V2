@@ -1,7 +1,8 @@
 from django.urls import path
 
 from orders.views import OrderCreateView, OrderUserList, OrderUserRemove, OrderUserCancelView, OrdersDashboardView, \
-    OrderDashboardDetailsView, AdminOrderCreateView, OrderDashboardUpdateView, OrderProductCreateView
+    OrderDashboardDetailsView, AdminOrderCreateView, OrderDashboardUpdateView, OrderProductCreateView, \
+    CheckOrderStatusView
 
 urlpatterns = [
     # ------------------------ orders endpoints --------------------------
@@ -13,6 +14,7 @@ urlpatterns = [
     path('dashboard/order/details/', OrderDashboardDetailsView.as_view()),  # retrieve details of an order
     path('dashboard/order/create/', AdminOrderCreateView.as_view()),
     path('dashboard/order/update/', OrderDashboardUpdateView.as_view()),
+    path('orders/check/', CheckOrderStatusView.as_view()),
 
     # ------------------------- product-orders endpoints -------------------
     path('carts/orders/product-orders/create/', OrderProductCreateView.as_view()),
