@@ -16,12 +16,13 @@ from products.models import (
     Product
 )
 from products.permissions import AdminPermissions
-from shipments.models import Shipment
+from shipments.models import Shipment, DeliveryAddress
 from users.models import ReferralDiscount
-from utils.utils import send_email, update_bestseller_status
+from utils.utils import send_email, update_bestseller_status, is_first_purchase
 from .serializers import PaymentSerializer, CouponSerializer
 
 MP_ACCESS_TOKEN = config('MERCADO_PAGO_ACCESS_TOKEN')
+SHIPPING_COST = config('SHIPPING_COST', cast=int, default=5000)
 
 
 class CreatePaymentPreference(APIView):
@@ -39,7 +40,7 @@ class CreatePaymentPreference(APIView):
         discount_value = 0
         discount_applied = False
         discount_type = 'NONE'
-        shipping_cost = 0 if ReferralDiscount.objects.filter(user=user, has_discount=True).exists() else 5000
+        shipping_cost = 0 if is_first_purchase(user) else SHIPPING_COST
 
         processed_items = []
 
@@ -76,7 +77,7 @@ class CreatePaymentPreference(APIView):
                 'title': product.name,
                 'quantity': quantity,
                 'currency_id': 'COP',
-                'unit_price': unit_price  # se ajustará más adelante si hay descuento
+                'unit_price': unit_price
             })
 
         # Verificamos y aplicamos descuento si existe
@@ -84,7 +85,7 @@ class CreatePaymentPreference(APIView):
             discount = ReferralDiscount.objects.get(user=user)
             if discount.is_valid():
                 discount_applied = True
-                discount_type = 'FIRST_PURCHASE' if self.is_first_purchase(user) else "REFERRAL"
+                discount_type = 'FIRST_PURCHASE' if is_first_purchase(user) else "REFERRAL"
                 discount_value = round(subtotal * 0.10, 2)
 
                 # Ajustar los precios unitarios proporcionalmente
@@ -100,7 +101,7 @@ class CreatePaymentPreference(APIView):
         except ReferralDiscount.DoesNotExist:
             pass  # No discount
 
-        total = round(subtotal - discount_value + shipping_cost, 2)
+        total = round(subtotal - discount_value, 2)
 
         order.subtotal = subtotal
         order.discount_applied = discount_applied
@@ -127,8 +128,12 @@ class CreatePaymentPreference(APIView):
                 'address': {
                     'zip_code': shipping_info['postalCode'],
                     'street_name': shipping_info['street'],
-                    'street_number': 45
+                    'street_number': shipping_info['id']
                 }
+            },
+            'shipments': {
+                'cost': SHIPPING_COST,
+                'mode': 'not_specified'
             },
             'back_urls': {
                 'success': 'https://avoberry.vercel.app/checkout/success/',
@@ -171,112 +176,6 @@ class CreatePaymentPreference(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    def is_first_purchase(self, user) -> bool:
-        """
-        Determines if the user is making their first purchase.
-
-        Args:
-            user (User): The user instance to check.
-
-        Returns:
-            bool: True if the user has no previous orders (i.e., this is their first purchase),
-                  False otherwise.
-        """
-        return not Order.objects.filter(user=user).exists()
-
-
-class MercadoPagoPaymentView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_idempotency_key(self, request):
-        return request.data.get('idempotency_key', str(uuid.uuid4()))
-
-    def build_payment_data(self, request):
-        try:
-            payer_data = request.data.get('payer', {})
-            identification = payer_data.get('identification', {})
-            return {
-                'transaction_amount': float(request.data.get('transaction_amount')),
-                'token': request.data.get('token'),
-                'description': 'Compra de productos',
-                'installments': int(request.data.get('installments')),
-                'payment_method_id': request.data.get('payment_method_id'),
-                'issuer_id': request.data.get('issuer_id'),
-                'payer': {
-                    'email': payer_data.get('email'),
-                    'identification': {
-                        'type': identification.get('type'),
-                        'number': identification.get('number')
-                    }
-                },
-                'external_reference': str(uuid.uuid4()),  # Opcional pero recomendado para conciliación
-            }
-
-
-        except (TypeError, ValueError, KeyError) as e:
-            raise ValueError(f'Datos inválidos: {e}')
-
-    def post(self, request, *args, **kwargs):
-        sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
-        request_options = mercadopago.config.RequestOptions()
-        request_options.custom_headers = {
-            'x-idempotency-key': self.get_idempotency_key(request)
-        }
-
-        try:
-            user = request.user  # Usuario autenticado
-            payment_data = self.build_payment_data(request)
-        except ValueError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-
-            response = sdk.payment().create(payment_data, request_options)
-            payment = response.get('response', {})
-
-            if payment.get('status') != 'approved':
-                return Response(
-                    {'error': 'Pago no aprobado', 'details': response},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Asociar la orden si existe
-            order = Order.objects.filter(user=user, status='PENDING').first()
-            if not order:
-                return Response(
-                    {'error': 'No se encontró una orden asociada al usuario'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            # (Opcional) Aquí podrías actualizar el estado de la orden
-
-            return Response(payment, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response(
-                {'error': 'Error al procesar el pago', 'details': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-# cart details
-class PaymentDetailsViewView(APIView):
-    def get(self, request):
-        order_id = request.query_params.get('order', None)
-        if not order_id:
-            return Response({'message': 'Payment ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            payment = Payment.objects.get(order=order_id)
-            serializer = PaymentSerializer(payment, many=False)
-            # if serializer.is_valid():
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        #  return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        except Payment.DoesNotExist:
-            return Response({'message': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        except Exception as e:
-            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class MercadoPagoWebhookView(APIView):
     permission_classes = [AllowAny]
@@ -285,31 +184,28 @@ class MercadoPagoWebhookView(APIView):
         try:
             event_type = request.data.get('type')
             if event_type != 'payment':
-                return Response({'message': 'Evento ignorado'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Event ignored'}, status=status.HTTP_200_OK)
 
             payment_id = request.data.get('data', {}).get('id')
             if not payment_id:
-                return Response({'error': 'ID de pago no proporcionado'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Payment ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
                 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
                 payment = sdk.payment().get(payment_id)
                 payment_data = payment.get('response', {})
                 if not payment_data:
-                    raise ValueError('Datos de pago vacíos')
+                    raise ValueError('Empty payment data')
             except Exception as e:
-                return Response({'error': f'Error al obtener datos del pago: {str(e)}'},
+                return Response({'error': f'Error getting payment data: {str(e)}'},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             info = self.extract_payment_data(payment_data)
             order = Order.objects.filter(id=info['external_reference']).first()
             if not order:
-                return Response({'error': 'No se encontró la orden'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Command not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            order.status = 'PROCESSING'
-            order.save()
-
-            # Crear o actualizar el Payment
+            # Create or update the Payment
             payment_obj, created = Payment.objects.update_or_create(
                 order=order,
                 defaults={
@@ -318,10 +214,10 @@ class MercadoPagoWebhookView(APIView):
                     "external_reference": info.get("external_reference") or 'None',
                     "payment_status": (info.get("status") or 'PENDING').upper(),
                     "status_detail": info.get("status_detail") or 'PENDING',
-                    "payment_amount": info.get("transaction_amount") or 0,
+                    "payment_amount": info.get("total_paid_amount") or 0,
                     "net_received_amount": info.get("net_received_amount") or 0,
                     "taxes_amount": (
-                            (info.get("transaction_amount") or 0) -
+                            (info.get("total_paid_amount") or 0) -
                             (info.get("net_received_amount") or 0)
                     ),
                     "currency_id": info.get("currency_id") or 'COP',
@@ -337,17 +233,46 @@ class MercadoPagoWebhookView(APIView):
                     "payer_zip_code": info.get("payer_zip_code") or 'None',
                 }
             )
+            subtotal = order.subtotal
+            shipping_cost = order.shipping_cost
+            total = round(subtotal + shipping_cost, 2)
+            order.status = 'PROCESSING'
+            order.total = total
+            order.save()
 
-            # Crear envío
+            # Create shipment
+            try:
+                shipment_address = DeliveryAddress.objects.get(pk=int(info.get('payer_street_number')))
+            except DeliveryAddress.DoesNotExist:
+                return Response({'error': 'Not address related with the user'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
             shipping_address = Shipment.objects.create(
                 customer=order.user,
                 order=order,
-                shipment_address=f"{info.get('payer_street_name', '')} - {info.get('payer_street_number', '')}".strip(),
-                shipment_city='Bogotá',
-                zip_code=info.get('payer_zip_code', '110111')
+                shipment_address=shipment_address.street,
+                shipment_city=shipment_address.city,
+                zip_code=shipment_address.zip_code
             )
 
-            #prepare data to send email when payment is success
+            with atomic():
+                for item in info.get('items', []):
+                    sku = item.get('id')
+                    quantity = int(item.get('quantity', 0))
+                    try:
+                        product = Product.objects.select_for_update().get(sku=sku)
+                        update_bestseller_status(product, 1)
+
+                        # Only what is available is discounted
+                        deducted_quantity = min(product.stock, quantity)
+
+                        if deducted_quantity > 0:
+                            product.stock -= deducted_quantity
+                            product.save()
+
+                    except Product.DoesNotExist:
+                        raise ValueError(f'Producto con SKU {sku} no encontrado')
+
+            # prepare data to send email when payment is success
             items = OrderProduct.objects.filter(order=order)
             context = {
                 'user': request.data.get('first_name'),
@@ -359,9 +284,9 @@ class MercadoPagoWebhookView(APIView):
                 'payment_method': info['payment_method_id'],
                 'delivery_date': 'Pending',
                 'subtotal': payment_obj.payment_amount,
-                'shipping_cost': 5000,
+                'shipping_cost': info['shipping_amount'],
                 'discount': order.discount_value,
-                'total': payment_obj.payment_amount,
+                'total': info['total_paid_amount'],
                 'shipping_address': shipping_address,
                 'phone': order.user.phone,
                 'tracking_number': shipping_address.id,
@@ -373,33 +298,11 @@ class MercadoPagoWebhookView(APIView):
             }
             send_email('Gracias por tu compra', f'{order.user.email}', [],
                        context,
-                       'email/order-confirmation.html', success_message='Your purchase was created successfully')
-
-            with atomic():
-                for item in info.get('items', []):
-                    sku = item.get('id')
-                    quantity = int(item.get('quantity', 0))
-                    try:
-                        product = Product.objects.select_for_update().get(sku=sku)
-                        update_bestseller_status(product, 1)
-
-                        # Solo se descuenta lo disponible
-                        deducted_quantity = min(product.stock, quantity)
-
-                        if deducted_quantity > 0:
-                            product.stock -= deducted_quantity
-                            product.save()
-                        #
-                        #     # Opcional: actualizar la cantidad real entregada en la orden
-                        #     item['delivered_quantity'] = deducted_quantity
-                        # else:
-                        #     item['delivered_quantity'] = 0  # No hay stock disponible
-
-                    except Product.DoesNotExist:
-                        raise ValueError(f'Producto con SKU {sku} no encontrado')
+                       'email/order-confirmation.html',
+                       success_message='Your purchase was created successfully')
 
             return Response({
-                'message': 'Pago recibido exitosamente',
+                'message': 'Payment successfully received',
                 'payment_id': payment_id,
                 'status': info.get('status'),
             }, status=status.HTTP_200_OK)
@@ -412,6 +315,7 @@ class MercadoPagoWebhookView(APIView):
         payer_info = payment_data.get('payer', {})
         additional_info = payment_data.get('additional_info', {})
         shipping_info = additional_info.get('payer', {}).get('address', {})
+        transaction_details = payment_data.get('transaction_details', {})
 
         return {
             'payment_id': payment_data.get('id'),
@@ -420,26 +324,154 @@ class MercadoPagoWebhookView(APIView):
             'status': payment_data.get('status'),
             'status_detail': payment_data.get('status_detail'),
             'date_approved': payment_data.get('date_approved'),
-            'transaction_amount': payment_data.get('transaction_amount'),
-            'net_received_amount': payment_data.get('transaction_details', {}).get('net_received_amount'),
+
+            # Totales
+            'transaction_amount': payment_data.get('transaction_amount'),  # Solo productos
+            'shipping_amount': payment_data.get('shipping_amount'),  # Solo envío
+            'total_paid_amount': transaction_details.get('total_paid_amount'),  # Total con envío
+            'net_received_amount': transaction_details.get('net_received_amount'),
             'currency_id': payment_data.get('currency_id'),
+
+            # Métodos de pago
             'payment_type_id': payment_data.get('payment_type_id'),
             'payment_method_id': payment_data.get('payment_method_id'),
 
-            # Payer info
+            # Info del comprador
             'payer_email': payer_info.get('email'),
             'payer_id': payer_info.get('id'),
             'payer_identification_type': payer_info.get('identification', {}).get('type'),
             'payer_identification_number': payer_info.get('identification', {}).get('number'),
 
-            # Dirección del pagador
+            # Dirección del comprador
             'payer_street_name': shipping_info.get('street_name'),
             'payer_street_number': shipping_info.get('street_number'),
             'payer_zip_code': shipping_info.get('zip_code'),
 
             # Productos comprados
-            'items': additional_info.get('items', []),
+            'items': additional_info.get('items', [])
         }
+
+    # def extract_payment_data(self, payment_data: dict) -> dict:
+    #     payer_info = payment_data.get('payer', {})
+    #     additional_info = payment_data.get('additional_info', {})
+    #     shipping_info = additional_info.get('payer', {}).get('address', {})
+    #     print(payment_data)
+    #
+    #     return {
+    #         'payment_id': payment_data.get('id'),
+    #         'order_id': payment_data.get('order', {}).get('id'),
+    #         'external_reference': payment_data.get('external_reference'),
+    #         'status': payment_data.get('status'),
+    #         'status_detail': payment_data.get('status_detail'),
+    #         'date_approved': payment_data.get('date_approved'),
+    #         'transaction_amount': payment_data.get('transaction_amount'),
+    #         'net_received_amount': payment_data.get('transaction_details', {}).get('net_received_amount'),
+    #         'currency_id': payment_data.get('currency_id'),
+    #         'payment_type_id': payment_data.get('payment_type_id'),
+    #         'payment_method_id': payment_data.get('payment_method_id'),
+    #
+    #         # Payer info
+    #         'payer_email': payer_info.get('email'),
+    #         'payer_id': payer_info.get('id'),
+    #         'payer_identification_type': payer_info.get('identification', {}).get('type'),
+    #         'payer_identification_number': payer_info.get('identification', {}).get('number'),
+    #
+    #         # Payer address
+    #         'payer_street_name': shipping_info.get('street_name'),
+    #         'payer_street_number': shipping_info.get('street_number'),
+    #         'payer_zip_code': shipping_info.get('zip_code'),
+    #
+    #         # Products purchased
+    #         'items': additional_info.get('items', []),
+    #     }
+
+
+class MercadoPagoPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
+        request_options = mercadopago.config.RequestOptions()
+        request_options.custom_headers = {
+            'x-idempotency-key': self.get_idempotency_key(request)
+        }
+
+        try:
+            user = request.user
+            payment_data = self.build_payment_data(request)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+
+            response = sdk.payment().create(payment_data, request_options)
+            payment = response.get('response', {})
+
+            if payment.get('status') != 'approved':
+                return Response(
+                    {'error': 'Payment not approved', 'details': response},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            order = Order.objects.filter(user=user, status='PENDING').first()
+            if not order:
+                return Response(
+                    {'error': 'An order associated with the user was not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            return Response(payment, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+
+                {'error': 'Error processing payment', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def get_idempotency_key(self, request):
+        return request.data.get('idempotency_key', str(uuid.uuid4()))
+
+    def build_payment_data(self, request):
+        try:
+            payer_data = request.data.get('payer', {})
+            identification = payer_data.get('identification', {})
+
+            return {
+                'transaction_amount': float(request.data.get('transaction_amount')),
+                'token': request.data.get('token'),
+                'description': 'Products Purchase',
+                'installments': int(request.data.get('installments')),
+                'payment_method_id': request.data.get('payment_method_id'),
+                'issuer_id': request.data.get('issuer_id'),
+                'payer': {
+                    'email': payer_data.get('email'),
+                    'identification': {
+                        'type': identification.get('type'),
+                        'number': identification.get('number')
+                    }
+                },
+                'external_reference': str(uuid.uuid4()),
+            }
+
+        except (TypeError, ValueError, KeyError) as e:
+            raise ValueError(f'Invalid data: {e}')
+
+# cart details
+class PaymentDetailsViewView(APIView):
+    def get(self, request):
+        order_id = request.query_params.get('order', None)
+        if not order_id:
+            return Response({'message': 'Payment ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payment = Payment.objects.get(order=order_id)
+            serializer = PaymentSerializer(payment, many=False)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        except Payment.DoesNotExist:
+            return Response({'message': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CouponsCreateView(APIView):
@@ -452,8 +484,7 @@ class CouponsCreateView(APIView):
         expiration_date = request.data.get('expiration_date', None)
 
         if not coupon_code or not discount or not discount_type or not expiration_date:
-            return Response({'message': 'Todos los campos son obligatorios'}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({'message': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             serializer = CouponSerializer(data=request.data)
             if serializer.is_valid():

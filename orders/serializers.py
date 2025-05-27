@@ -7,20 +7,20 @@ from users.models import User
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)  # Serializa el producto relacionado
+    product = ProductSerializer(read_only=True)
 
     class Meta:
         model = OrderProduct
-        fields = ['id', 'product', 'price', 'quantity']  # No hay un campo 'products' en OrderProduct
+        fields = ['id', 'product', 'price', 'quantity']
 
 
 class OrderSerializer(serializers.ModelSerializer):
     products = OrderProductSerializer(source='orderproduct_set', many=True, read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=True)
-    user_details = UserDetailsSerializer(source='user', read_only=True)
     payment = PaymentSerializer()
     shipping_details = ShipmentSerializer(source='shipment', read_only=True)
+
     class Meta:
         model = Order
-        fields = ['id', 'user', 'user_details', 'payment', 'creation_date', 'last_updated', 'status',
-                  'products', 'subtotal', 'total', 'discount_applied', 'discount_value', 'discount_type', 'shipping_details']
+        fields = ['id', 'user', 'payment', 'creation_date', 'last_updated', 'status',
+                  'products', 'subtotal', 'total', 'discount_applied', 'discount_value', 'discount_type', 'shipping_details', 'shipping_cost']

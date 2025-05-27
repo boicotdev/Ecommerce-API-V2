@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from products.models import Product
+from utils.utils import update_product_score
 from .models import ProductReview, ReviewResponse
 from .serializers import ProductReviewSerializer, ProductReviewResponseSerializer
 from reviews.permissions import IsOwnershipData, IsOwnerOfReview
@@ -29,12 +30,11 @@ class ProductReviewAPIView(APIView):
 
 
     def post(self, request):
-        print(request.data)
         serializer = ProductReviewSerializer(data=request.data)
         if serializer.is_valid():
             product = Product.objects.filter(sku=request.data.get('product')).first()
-            serializer.save(user=request.user)  # asigna el usuario al crear
-            product.score += request.data.get('rating')
+            serializer.save(user=request.user)
+            update_product_score(product, request.data.get('rating')) #update product score
             product.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

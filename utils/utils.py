@@ -5,7 +5,7 @@ from django.utils.html import strip_tags
 from rest_framework import status
 from rest_framework.response import Response
 
-from orders.models import OrderProduct
+from orders.models import OrderProduct, Order
 from users.models import UserProfileSettings, User
 
 
@@ -135,3 +135,17 @@ def create_user_profile_settings(dni: str) -> bool:
     except Exception:
         # Optionally log the error here
         return False
+
+
+def is_first_purchase(user) -> bool:
+    """
+    Determines if the user is making their first purchase.
+
+    Args:
+        user (User): The user instance to check.
+
+    Returns:
+        bool: True if the user has no previous orders (i.e., this is their first purchase),
+              False otherwise.
+    """
+    return not Order.objects.filter(user=user).exists()

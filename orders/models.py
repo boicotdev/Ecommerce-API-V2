@@ -46,30 +46,31 @@ class Order(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
 
-    # Nuevos campos para el manejo de descuentos
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # sin descuentos
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # no discounts
     discount_applied = models.BooleanField(default=False)
-    discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # valor total del descuento
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # total discount value
     discount_type = models.CharField(
         max_length=20,
         choices=DISCOUNT_TYPES,
         default="NONE"
     )
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # subtotal - descuento + envío
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # subtotal - discount + shipping
 
-    # Opcional: si manejas envío como campo separado
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def save(self, *args, **kwargs):
-        if not self.id:  # Solo generar el ID si no existe
-            user_dni = getattr(self.user, 'dni', "00000000")  # Obtener el DNI del usuario o usar por defecto
+        if not self.id:
+            user_dni = getattr(self.user, 'dni', "00000000")
             self.id = generate_unique_order_id(user_dni)
 
         super().save(*args, **kwargs)
 
+
     def __str__(self):
         return f"Order {self.id} | {self.status} | {self.creation_date} | Last updated: {self.last_updated} | User: {self.user.username}"
 
+    class Meta:
+        ordering = ['-creation_date']
 
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
