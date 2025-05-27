@@ -131,9 +131,9 @@ class CreatePaymentPreference(APIView):
                 }
             },
             'back_urls': {
-                'success': 'https://avoberry.vercel.app/checkout/success/',
-                'failure': 'https://avoberry.vercel.app/checkout/failure/',
-                'pending': 'https://avoberry.vercel.app/checkout/pending/'
+                'success': 'https://m43dpnwr-3000.use2.devtunnels.ms/checkout/success/',
+                'failure': 'https://m43dpnwr-3000.use2.devtunnels.ms/checkout/failure/',
+                'pending': 'https://m43dpnwr-3000.use2.devtunnels.ms/checkout/pending/'
             },
             'auto_return': 'approved',
             'notification_url': notification_url or str(config('DEFAULT_NOTIFICATION_URL')),
@@ -344,7 +344,7 @@ class MercadoPagoWebhookView(APIView):
                 order=order,
                 shipment_address=f"{info.get('payer_street_name', '')} - {info.get('payer_street_number', '')}".strip(),
                 shipment_city='Bogotá',
-                shipment_date_post_code=info.get('payer_zip_code', '110111')
+                zip_code=info.get('payer_zip_code', '110111')
             )
 
             #prepare data to send email when payment is success
