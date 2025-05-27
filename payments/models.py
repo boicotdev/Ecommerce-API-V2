@@ -51,6 +51,7 @@ class Payment(models.Model):
     payer_street_number = models.CharField(max_length=10, default='None')
     payer_zip_code = models.CharField(max_length=20, default='None')
 
+
     def __str__(self):
         return f"Payment {self.payment_id} | {self.payment_status} | ${self.payment_amount} | Order {self.order.id}"
 

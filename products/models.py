@@ -43,10 +43,10 @@ class Product(models.Model):
     purchase_price = models.FloatField(default=0)
 
     stock = models.PositiveIntegerField(default=1)
-    unit = models.ForeignKey(UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL, verbose_name="unit")
+    measure_unity = models.ForeignKey(UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL, verbose_name="measure_unity")
     category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL)
 
-    score = models.IntegerField(blank=True, null=True)  # Consider usar Decimal con validación
+    score = models.IntegerField(blank=True, null=True)
     recommended = models.BooleanField(default=False)
     best_seller = models.BooleanField(default=False)
 
@@ -58,4 +58,4 @@ class Product(models.Model):
     )
 
     def __str__(self):
-        return f"Product: {self.name} (SKU: {self.sku}, Stock: {self.stock} {self.unit}, Price: ${self.price})"
+        return f"Product: {self.name} (SKU: {self.sku}, Stock: {self.stock} {self.measure_unity}, Price: ${self.price})"
