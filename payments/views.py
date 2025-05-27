@@ -136,9 +136,9 @@ class CreatePaymentPreference(APIView):
                 'mode': 'not_specified'
             },
             'back_urls': {
-                'success': 'https://m43dpnwr-3000.use2.devtunnels.ms/checkout/success/',
-                'failure': 'https://m43dpnwr-3000.use2.devtunnels.ms/checkout/failure/',
-                'pending': 'https://m43dpnwr-3000.use2.devtunnels.ms/checkout/pending/'
+                'success': 'https://avoberry.vercel.app/checkout/success/',
+                'failure': 'https://avoberry.vercel.app/checkout/failure/',
+                'pending': 'https://avoberry.vercel.app/checkout/pending/'
             },
             'auto_return': 'approved',
             'notification_url': notification_url or str(config('DEFAULT_NOTIFICATION_URL')),
