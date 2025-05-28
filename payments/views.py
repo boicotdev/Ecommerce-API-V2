@@ -212,13 +212,13 @@ class MercadoPagoWebhookView(APIView):
                     "payment_id": info.get("payment_id"),
                     "mercado_pago_order_id": info.get("order_id") or 'None',
                     "external_reference": info.get("external_reference") or 'None',
-                    "payment_status": (info.get("status") or 'PENDING').upper(),
-                    "status_detail": info.get("status_detail") or 'PENDING',
-                    "payment_amount": info.get("total_paid_amount") or 0,
-                    "net_received_amount": info.get("net_received_amount") or 0,
-                    "taxes_amount": (
-                            (info.get("total_paid_amount") or 0) -
-                            (info.get("net_received_amount") or 0)
+                    "payment_status": (info.get("status") or 'APPROVED').upper(),
+                    "status_detail": info.get("status_detail") or 'APPROVED',
+                    "payment_amount": round(float(info.get("total_paid_amount") or 0), 2),
+                    "net_received_amount": round(float(info.get("net_received_amount") or 0), 2),
+                    "taxes_amount": round(
+                        (float(info.get("total_paid_amount") or 0) - float(info.get("net_received_amount") or 0)),
+                        2
                     ),
                     "currency_id": info.get("currency_id") or 'COP',
                     "payment_method": (info.get("payment_method_id") or 'ACCOUNT_MONEY').upper(),
@@ -244,7 +244,8 @@ class MercadoPagoWebhookView(APIView):
             try:
                 shipment_address = DeliveryAddress.objects.get(pk=int(info.get('payer_street_number')))
             except DeliveryAddress.DoesNotExist:
-                return Response({'error': 'Not address related with the user'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'error': 'Not address related with the user'},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             shipping_address = Shipment.objects.create(
                 customer=order.user,
@@ -456,6 +457,7 @@ class MercadoPagoPaymentView(APIView):
 
         except (TypeError, ValueError, KeyError) as e:
             raise ValueError(f'Invalid data: {e}')
+
 
 # cart details
 class PaymentDetailsViewView(APIView):
