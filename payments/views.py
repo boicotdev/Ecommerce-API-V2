@@ -1,17 +1,13 @@
 import datetime
 import uuid
-from io import BytesIO
 
 import mercadopago
 from decouple import config
 from django.db.transaction import atomic
-from django.http import HttpResponse
-from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView, Response
-from weasyprint import HTML
 
 from carts.models import Cart, ProductCart
 from orders.models import Order, OrderProduct
