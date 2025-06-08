@@ -2,11 +2,13 @@ from django.urls import path
 
 from payments.views import (CreatePaymentPreference, MercadoPagoPaymentView, PaymentDetailsViewView,
                             MercadoPagoWebhookView, CouponsAdminRetrieveView,
-                            CouponCodeCheckView, CouponsCreateView, CouponUpdateView, CouponDeleteView)
+                            CouponCodeCheckView, CouponsCreateView, CouponUpdateView, CouponDeleteView,
+                            GenerateSalesReportAPIView)
 
 urlpatterns = [
     # --------------------------------- Payments ---------------------------
     path('orders/carts/payments/', PaymentDetailsViewView.as_view()),
+    path('payments/report/<str:order_id>/', GenerateSalesReportAPIView.as_view()),
     path('payment/preferences/', CreatePaymentPreference.as_view()),
     path('process_payment/', MercadoPagoPaymentView.as_view()),
     path('webhook/mercadopago/', MercadoPagoWebhookView.as_view(), name='mercadopago-webhook'),

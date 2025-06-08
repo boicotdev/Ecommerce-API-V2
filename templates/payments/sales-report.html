@@ -1,0 +1,707 @@
+{%load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura de Venta - Avoberry</title>
+    <style>
+        /* Base y variables */
+        :root {
+            --primary: #2dd4bf;
+            --primary-light: #99f6e4;
+            --primary-dark: #0d9488;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--gray-700);
+            background-color: var(--gray-100);
+            line-height: 1.4;
+            font-size: 0.875rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 1rem;
+        }
+
+        /* Contenedor principal */
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Cabecera */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .company-logo {
+            max-width: 90px;
+            height: auto;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-label {
+            font-size: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-400);
+            margin-bottom: 0.25rem;
+        }
+
+        .invoice-number {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            letter-spacing: -0.025em;
+        }
+
+        .invoice-date {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        /* Sección de información */
+        .invoice-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .info-group {
+            margin-bottom: 1rem;
+        }
+
+        .info-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-400);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-size: 0.75rem;
+            color: var(--gray-800);
+            line-height: 1.4;
+        }
+
+        .info-value.bold {
+            font-weight: 500;
+        }
+
+        .company-details {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        .company-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-size: 0.6875rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-top: 0.375rem;
+        }
+
+        .payment-badge svg {
+            width: 0.875rem;
+            height: 0.875rem;
+            margin-right: 0.25rem;
+        }
+
+        /* Tabla de productos */
+        .invoice-items {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .items-table th {
+            text-align: left;
+            padding: 0.5rem 0.625rem;
+            border-bottom: 1px solid var(--gray-200);
+            font-weight: 500;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            font-size: 0.6875rem;
+        }
+
+        .items-table td {
+            padding: 0.625rem;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+            vertical-align: middle;
+        }
+
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .items-table th:last-child,
+        .items-table td:last-child {
+            text-align: right;
+        }
+
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .product-image {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.25rem;
+            object-fit: cover;
+            background-color: var(--gray-100);
+            border: 1px solid var(--gray-200);
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: var(--gray-800);
+            font-size: 0.75rem;
+        }
+
+        .product-meta {
+            font-size: 0.625rem;
+            color: var(--gray-500);
+            margin-top: 0.125rem;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .price {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .quantity {
+            color: var(--gray-600);
+        }
+
+        .quantity-unit {
+            font-size: 0.625rem;
+            color: var(--gray-500);
+            margin-left: 0.125rem;
+        }
+
+        /* Sección de totales */
+        .invoice-summary {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .summary-card {
+            width: 100%;
+            background-color: var(--gray-50);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .summary-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.625rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+
+        .summary-body {
+            padding: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .summary-left {
+            flex: 1;
+            min-width: 200px;
+            padding-right: 1rem;
+        }
+
+        .summary-right {
+            width: 200px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            font-size: 0.75rem;
+        }
+
+        .summary-label {
+            color: var(--gray-600);
+        }
+
+        .summary-value {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .summary-divider {
+            height: 1px;
+            background-color: var(--gray-200);
+            margin: 0.375rem 0;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.375rem 0 0;
+            font-size: 0.875rem;
+        }
+
+        .summary-total-label {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .summary-total-value {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        /* Pie de página */
+        .invoice-footer {
+            padding: 1rem 1.5rem;
+            text-align: center;
+            border-top: 1px solid var(--gray-100);
+            font-size: 0.6875rem;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        .footer-note {
+            max-width: 28rem;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.6875rem;
+        }
+
+        .footer-link {
+            color: var(--primary-dark);
+            text-decoration: none;
+        }
+
+        /* Marca de agua */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 6rem;
+            color: rgba(229, 231, 235, 0.5);
+            font-weight: 800;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        /* Decoración */
+        .invoice-decoration {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6rem;
+            height: 6rem;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .decoration-shape {
+            position: absolute;
+            top: -3rem;
+            right: -3rem;
+            width: 6rem;
+            height: 6rem;
+            background-color: var(--primary-light);
+            transform: rotate(45deg);
+            opacity: 0.2;
+        }
+
+        /* Status badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--success);
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 500;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            margin-top: 0.375rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* QR Code */
+        .qr-code {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .qr-image {
+            width: 3.5rem;
+            height: 3.5rem;
+            background-color: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: var(--gray-600);
+        }
+
+        .qr-text {
+            font-size: 0.625rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        /* Información fiscal compacta */
+        .tax-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--gray-50);
+            border-top: 1px solid var(--gray-100);
+            font-size: 0.6875rem;
+        }
+
+        .tax-info-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .tax-info-label {
+            color: var(--gray-500);
+            margin-right: 0.5rem;
+            font-weight: 500;
+        }
+
+        .tax-info-value {
+            color: var(--gray-700);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .invoice-header,
+            .invoice-info,
+            .invoice-items,
+            .invoice-summary,
+            .tax-info,
+            .invoice-footer {
+                padding: 1rem;
+            }
+
+            .invoice-info {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .summary-body {
+                flex-direction: column;
+            }
+
+            .summary-left {
+                padding-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .summary-right {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .invoice-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .invoice-title {
+                text-align: left;
+                margin-top: 1rem;
+            }
+
+            .items-table th:nth-child(2),
+            .items-table td:nth-child(2) {
+                display: none;
+            }
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                background-color: white;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+
+            .summary-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .status-badge,
+            .payment-badge {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Decoración -->
+        <div class="invoice-decoration">
+            <div class="decoration-shape"></div>
+        </div>
+
+        <!-- Marca de agua -->
+        <div class="watermark">PAGADO</div>
+
+        <!-- Cabecera -->
+        <header class="invoice-header">
+            <div>
+                <img src="https://avoberry.vercel.app/images/logo-without-bg.png" alt="Avoberry | Logo" class="company-logo">
+            </div>
+            <div class="invoice-title">
+                <div class="invoice-label">Factura Electrónica</div>
+                <div class="invoice-number">{{ sale.invoice_number|default:sale.order.id }}</div>
+                <div class="invoice-date">{{ sale.order.creation_date|date:"d/m/Y" }}</div>
+                <div class="status-badge">Pagado</div>
+            </div>
+        </header>
+
+        <!-- Información -->
+        <section class="invoice-info">
+            <div>
+                <div class="info-group">
+                    <div class="info-label">Facturado a</div>
+                    <div class="info-value bold">{{ sale.order.user.first_name }} {{ sale.order.user.last_name }}</div>
+                    <div class="info-value">{{ sale.order.user.email }}</div>
+                    <div class="info-value">{{ sale.order.user.address }}</div>
+                    <div class="info-value">Tel: {{ sale.order.user.phone }}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Método de pago</div>
+                    <div class="info-value">
+                        {% if sale.payment_method == "CREDIT_CARD" %}
+                            <div class="payment-badge">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                                </svg>
+                                Tarjeta de Crédito
+                            </div>
+                        {% elif sale.payment_method == "DEBIT_CARD" %}
+                            <div class="payment-badge">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                                </svg>
+                                Tarjeta de Débito
+                            </div>
+                        {% elif sale.payment_method == "CASH" %}
+                            <div class="payment-badge">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                    <circle cx="12" cy="12" r="2"></circle>
+                                    <path d="M6 12h.01M18 12h.01"></path>
+                                </svg>
+                                Efectivo
+                            </div>
+                        {% else %}
+                            <div class="payment-badge">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                                Método Desconocido
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="info-group">
+                    <div class="company-name">{{ company_name|default:"Avoberry" }}</div>
+                    <div class="company-details">
+                        <p>{{ company_address|default:"Conjunto granjas de santa sofia" }}</p>
+                        <p>Tel: {{ company_phone|default:"(+57) 3236283340" }}</p>
+                        <p>{{ company_email|default:"info@avoberry.com.co" }}</p>
+                        <p>NIT: {{ company_tax_id|default:"100047833-1" }}</p>
+                    </div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Detalles de la factura</div>
+                    <div class="info-value"><span style="color: var(--gray-500);">Fecha de emisión:</span> {{ sale.order.creation_date|date:"l, d \\d\\e F \\d\\e Y – h:i A" }}</div>
+                    <div class="info-value"><span style="color: var(--gray-500);">Fecha de vencimiento:</span> {{ sale.due_date|default:sale.order.creation_date|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Productos -->
+        <section class="invoice-items">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Imagen</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <div class="product-cell">
+                                {% if item.product.main_image %}
+                                <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}" class="product-image">
+                                {% endif %}
+                                <div>
+                                    <div class="product-name">{{ item.product.name }}</div>
+                                    <div class="product-meta">Producto fresco</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td></td>
+                        <td class="price">${{ item.price|floatformat:2 }}</td>
+                        <td class="quantity">{{ item.quantity }}<span class="quantity-unit">{{item.measure_unity}}</span></td>
+                        <td class="price">${% widthratio item.price 1 item.quantity %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Resumen -->
+        <section class="invoice-summary">
+            <div class="summary-card">
+                <div class="summary-header">
+                    Resumen
+                </div>
+                <div class="summary-body">
+                    <div class="summary-right">
+                        <div class="summary-row">
+                            <div class="summary-label">Subtotal</div>
+                            <div class="summary-value">${{ total }}</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">Envío</div>
+                            <div class="summary-value">$5.000</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">Descuento</div>
+                            <div class="summary-value">${{ sale.discount|default:"0.00" }}</div>
+                        </div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-total">
+                            <div class="summary-total-label">Total</div>
+                            <div class="summary-total-value">${{ total }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pie de página -->
+        <footer class="invoice-footer">
+            <div class="footer-note">
+                Esta factura se asimila en todos sus efectos a una letra de cambio según Art. 774 del Código de Comercio.
+                Factura generada electrónicamente. No requiere firma ni sello.
+            </div>
+            <div class="footer-links">
+               Powered By <a href="https://www.guzmandeveloper.vercel.app/" class="footer-link"> Carlos Alberto Guzmán</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

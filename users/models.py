@@ -34,7 +34,6 @@ class User(AbstractUser):
     avatar = models.ImageField(
         default='users/avatar.jpg',
         upload_to='users/', blank=True, null=True)
-    address = models.CharField(max_length=50)
     phone = models.CharField(max_length=15, blank=True)
     role = models.CharField(max_length=15)
     referral_code = models.CharField(max_length=25, unique=True, blank=True)

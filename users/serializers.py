@@ -50,7 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'dni', 'username', 'email', 'password', 'first_name', 'last_name', 'avatar',
-            'phone', 'address', 'role', 'date_joined', 'last_login', 'is_staff', 'is_superuser',
+            'phone', 'role', 'date_joined', 'last_login', 'is_staff', 'is_superuser',
             'orders', 'pending_orders_counter', 'addresses_counter', 'referred_by',
             'referral_code', 'referrer_code', 'reviews_counter', 'rewards_counter'
         ]
