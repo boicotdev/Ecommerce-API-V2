@@ -42,7 +42,7 @@ class ReviewResponseSerializer(serializers.ModelSerializer):
 class UserReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'avatar']
+        fields = ['username', 'first_name', 'last_name', 'avatar']
 
 class ProductReviewSerializer(serializers.ModelSerializer):
     responses = ReviewResponseSerializer(many=True, read_only=True)

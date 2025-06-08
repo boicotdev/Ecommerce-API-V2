@@ -1,13 +1,17 @@
 import datetime
 import uuid
+from io import BytesIO
 
 import mercadopago
 from decouple import config
 from django.db.transaction import atomic
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView, Response
+from weasyprint import HTML
 
 from carts.models import Cart, ProductCart
 from orders.models import Order, OrderProduct
@@ -352,40 +356,6 @@ class MercadoPagoWebhookView(APIView):
             'items': additional_info.get('items', [])
         }
 
-    # def extract_payment_data(self, payment_data: dict) -> dict:
-    #     payer_info = payment_data.get('payer', {})
-    #     additional_info = payment_data.get('additional_info', {})
-    #     shipping_info = additional_info.get('payer', {}).get('address', {})
-    #     print(payment_data)
-    #
-    #     return {
-    #         'payment_id': payment_data.get('id'),
-    #         'order_id': payment_data.get('order', {}).get('id'),
-    #         'external_reference': payment_data.get('external_reference'),
-    #         'status': payment_data.get('status'),
-    #         'status_detail': payment_data.get('status_detail'),
-    #         'date_approved': payment_data.get('date_approved'),
-    #         'transaction_amount': payment_data.get('transaction_amount'),
-    #         'net_received_amount': payment_data.get('transaction_details', {}).get('net_received_amount'),
-    #         'currency_id': payment_data.get('currency_id'),
-    #         'payment_type_id': payment_data.get('payment_type_id'),
-    #         'payment_method_id': payment_data.get('payment_method_id'),
-    #
-    #         # Payer info
-    #         'payer_email': payer_info.get('email'),
-    #         'payer_id': payer_info.get('id'),
-    #         'payer_identification_type': payer_info.get('identification', {}).get('type'),
-    #         'payer_identification_number': payer_info.get('identification', {}).get('number'),
-    #
-    #         # Payer address
-    #         'payer_street_name': shipping_info.get('street_name'),
-    #         'payer_street_number': shipping_info.get('street_number'),
-    #         'payer_zip_code': shipping_info.get('zip_code'),
-    #
-    #         # Products purchased
-    #         'items': additional_info.get('items', []),
-    #     }
-
 
 class MercadoPagoPaymentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -458,6 +428,43 @@ class MercadoPagoPaymentView(APIView):
         except (TypeError, ValueError, KeyError) as e:
             raise ValueError(f'Invalid data: {e}')
 
+
+class GenerateSalesReportAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        """Genera un reporte PDF para una venta específica."""
+        try:
+            Order.objects.get(id=order_id, user=request.user)
+        except Order.DoesNotExist:
+            return Response({'You dont have permission to perform this action'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            sale = Payment.objects.select_related("order").get(order__id=order_id)
+            order = sale.order  # Ya se obtuvo con select_related
+            order_products = order.orderproduct_set.all()
+            total = sum([item.price * item.quantity for item in order_products])
+            total += 5000
+            # Formatear el total con separación cada 3 cifras (estilo colombiano)
+            total_formatted = "{:,.0f}".format(sale.payment_amount).replace(",", ".")
+        except Payment.DoesNotExist:
+            return HttpResponse("Pago no encontrado", status=404)
+        except Order.DoesNotExist:
+            return HttpResponse("Orden no encontrada", status=404)
+
+        # Renderizar la plantilla HTML con datos
+        html_string = render_to_string("payments/sales-report.html", {"sale": sale,
+                                                                                "items": order_products,
+                                                                                "total": total_formatted})
+
+        # Generar PDF
+        pdf_file = BytesIO()
+        HTML(string=html_string).write_pdf(pdf_file)
+
+        # Responder con el PDF
+        pdf_file.seek(0)
+        response = HttpResponse(pdf_file, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="Factura_{order.id}.pdf"'
+        return response
 
 # cart details
 class PaymentDetailsViewView(APIView):

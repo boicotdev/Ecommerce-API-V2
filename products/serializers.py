@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from reviews.models import ProductReview
+from reviews.serializers import ProductReviewSerializer
 from users.models import User
 from .models import (
     Product,
@@ -24,7 +25,7 @@ class ProductSerializer(serializers.ModelSerializer):
     measure_unity = serializers.PrimaryKeyRelatedField(queryset=UnitOfMeasure.objects.all())
     category = serializers.SerializerMethodField(read_only=True)
     unit_measure = serializers.SerializerMethodField(read_only=True)
-    reviews_counts = serializers.SerializerMethodField(read_only=True)
+    reviews = serializers.SerializerMethodField(read_only=True)
 
     def get_category(self, obj):
         return obj.category.name if obj.category else None
@@ -32,15 +33,17 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_unit_measure(self, obj):
         return obj.measure_unity.unity if obj.measure_unity else None
 
-    def get_reviews_counts(self, obj):
-        return ProductReview.objects.filter(product=obj).count()
+    def get_reviews(self, obj):
+        reviews = ProductReview.objects.filter(product=obj)
+        return ProductReviewSerializer(reviews, many=True).data
+
 
     class Meta:
         model = Product
         fields = [
             'name', 'price', 'sku', 'description', 'stock',
             'category_id', 'recommended', 'best_seller', 'discount_price',
-            'main_image', 'category', 'score', 'measure_unity', 'unit_measure', 'reviews_counts'
+            'main_image', 'category', 'score', 'measure_unity', 'unit_measure', 'reviews'
         ]
 
     def create(self, validated_data):
