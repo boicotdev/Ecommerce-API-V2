@@ -60,5 +60,5 @@ class ProductSerializer(serializers.ModelSerializer):
 class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['dni', 'email', 'username', 'first_name', 'last_name', 'address', 'phone', 'avatar']
+        fields = ['dni', 'email', 'username', 'first_name', 'last_name', 'phone', 'avatar']
 
