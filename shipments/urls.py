@@ -10,6 +10,4 @@ urlpatterns = [
     path('shipments/addresses/', DeliveryAddressesAPIView.as_view()),
     # update a Shipment admin permissions are required
     path('shipments/addresses/<int:pk>/', DeliveryAddressesAPIView.as_view()),
-    # update a Shipment admin permissions are required
-
 ]

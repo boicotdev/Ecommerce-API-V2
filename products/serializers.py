@@ -8,6 +8,7 @@ from .models import (
     Category, UnitOfMeasure
 )
 
+
 class UnitOfMeasureSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnitOfMeasure
@@ -22,10 +23,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source="category")
-    measure_unity = serializers.PrimaryKeyRelatedField(queryset=UnitOfMeasure.objects.all())
     category = serializers.SerializerMethodField(read_only=True)
-    unit_measure = serializers.SerializerMethodField(read_only=True)
     reviews = serializers.SerializerMethodField(read_only=True)
+    weight = serializers.SerializerMethodField(read_only=True)
 
     def get_category(self, obj):
         return obj.category.name if obj.category else None
@@ -37,13 +37,18 @@ class ProductSerializer(serializers.ModelSerializer):
         reviews = ProductReview.objects.filter(product=obj)
         return ProductReviewSerializer(reviews, many=True).data
 
+    def get_weight(self, obj):
+        return {
+            'value': obj.weight,
+            'unit': 'Gramos'
+        }
 
     class Meta:
         model = Product
         fields = [
             'name', 'price', 'sku', 'description', 'stock',
             'category_id', 'recommended', 'best_seller', 'discount_price',
-            'main_image', 'category', 'score', 'measure_unity', 'unit_measure', 'reviews'
+            'main_image', 'category', 'score', 'reviews', 'tag', 'quality', 'weight'
         ]
 
     def create(self, validated_data):
@@ -56,9 +61,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['dni', 'email', 'username', 'first_name', 'last_name', 'phone', 'avatar']
-
