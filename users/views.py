@@ -12,6 +12,8 @@ from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from orders.models import Order
+from orders.serializers import OrderSerializer
 from utils.utils import send_email, create_user_profile_settings
 from .models import User, UserProfileSettings
 from .permissions import IsOwnerOrSuperUserPermission, IsOwnerOfProfileSettings
@@ -40,6 +42,20 @@ class LogoutUserView(APIView):
         except Exception as e:
             return Response({'message': 'Token no válido.'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+#retreve the basic data of the current administrator
+class RetrieveAdminData(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        user = request.user
+        orders = Order.objects.all()[:2]
+        user_serializer = UserSerializer(user)
+        orders_serializer = OrderSerializer(orders, many=True)
+        return Response({
+            'user': user_serializer.data,
+            'orders': orders_serializer.data
+        })
 
 # create a new User instance
 class UserCreateView(APIView):
@@ -87,7 +103,7 @@ class UserCreateView(APIView):
             }
             # handle user profile settings
             create_user_profile_settings(request.data.get('dni'))
-            send_email("Bienvenido a Avoberry", request.data.get('email'), [], context, "email/welcome-email.html")
+            send_email("Bienvenido a Fruta Andina", request.data.get('email'), [], context, "email/welcome-email.html")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

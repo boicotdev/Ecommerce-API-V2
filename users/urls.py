@@ -7,12 +7,13 @@ from .views import (
     UserDetailsView,
     CustomTokenObtainPairView,
     ClientUserListView, CustomTokenRefreshPairView,
-    LogoutUserView, ChangePasswordView, NewsletterSubscriptionView, UserProfileSettingsAPIView
+    LogoutUserView, ChangePasswordView, NewsletterSubscriptionView, UserProfileSettingsAPIView, RetrieveAdminData
 )
 
 urlpatterns = [
     path("users/token/obtain/", CustomTokenObtainPairView.as_view()),  # token obtain
     path("users/token/refresh/", CustomTokenRefreshPairView.as_view()),  # token refresh
+    path("users/data/", RetrieveAdminData.as_view()),  # retrieve admin data
     path("users/logout/", LogoutUserView.as_view()),  # kill a user session
     path("users/create/", UserCreateView.as_view()),  # create a new user
     path("dashboard/clients/", ClientUserListView.as_view()),  # retrieve all user clients
