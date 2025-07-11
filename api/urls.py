@@ -14,11 +14,14 @@ urlpatterns = [
     path('api/v1/', include('purchases.urls')),
     path('api/v1/', include('carts.urls')),
     path('api/v1/', include('reviews.urls')),
+    path('api/v1/', include('blog.urls'))
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL,
+                          document_root=settings.STATIC_ROOT)
 else:
     urlpatterns += [
         re_path(r'^media/(?P<path>.*)$', serve, {
