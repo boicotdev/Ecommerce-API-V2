@@ -18,7 +18,7 @@ from utils.utils import send_email, create_user_profile_settings
 from .models import User, UserProfileSettings
 from .permissions import IsOwnerOrSuperUserPermission, IsOwnerOfProfileSettings
 from .serializers import UserSerializer, CustomTokenObtainPairSerializer, ChangePasswordSerializer, \
-    NewsletterSubscriptionSerializer, UserProfileSettingsSerializer
+    NewsletterSubscriptionSerializer, UserProfileSettingsSerializer, AdminSerializer
 
 
 # login view
@@ -48,13 +48,9 @@ class RetrieveAdminData(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        user = request.user
-        orders = Order.objects.all()[:2]
-        user_serializer = UserSerializer(user)
-        orders_serializer = OrderSerializer(orders, many=True)
+        user_serializer = AdminSerializer(request.user)
         return Response({
             'user': user_serializer.data,
-            'orders': orders_serializer.data
         })
 
 # create a new User instance

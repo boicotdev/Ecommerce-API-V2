@@ -1,11 +1,15 @@
+from calendar import monthrange
 from datetime import timedelta
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib.auth.hashers import check_password
+from django.db.models import Sum
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from orders.models import Order
+from products.models import Product
 from reviews.models import ProductReview
 from shipments.models import DeliveryAddress, Shipment
 from .models import User, ReferralDiscount, NewsletterSubscription, UserProfileSettings
@@ -45,14 +49,15 @@ class UserSerializer(serializers.ModelSerializer):
     referrer_code = serializers.CharField(write_only=True, required=False)
     reviews_counter = serializers.SerializerMethodField()
     rewards_counter = serializers.SerializerMethodField()
+    total_spend = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = [
-            'dni', 'username', 'email', 'password', 'first_name', 'last_name', 'avatar',
-            'phone', 'role', 'date_joined', 'last_login', 'is_staff', 'is_superuser',
+            'dni', 'first_name', 'last_name', 'username', 'email', 'password', 'first_name', 'last_name', 'avatar',
+            'phone', 'role', 'date_joined', 'last_login', 'is_staff', 'is_active', 'is_superuser',
             'orders', 'pending_orders_counter', 'addresses_counter', 'referred_by',
-            'referral_code', 'referrer_code', 'reviews_counter', 'rewards_counter'
+            'referral_code', 'referrer_code', 'reviews_counter', 'rewards_counter', 'total_spend'
         ]
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -145,7 +150,78 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def get_total_spend(self, obj):
+        total = sum(order.total for order in Order.objects.filter(user=obj))
+        return total
 
+
+class AdminSerializer(serializers.ModelSerializer):
+    orders = serializers.SerializerMethodField(read_only=True)
+    revenue = serializers.SerializerMethodField(read_only=True)
+    customers = serializers.SerializerMethodField(read_only=True)
+    active_products = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['dni', 'username', 'first_name', 'last_name', 'email', 'role', 'last_login',
+                  'orders', 'revenue', 'customers', 'active_products']
+
+    def _get_month_range(self, months_ago=0):
+        """Devuelve el rango de fechas de un mes anterior"""
+        today = timezone.now()
+        first_day_this_month = today.replace(day=1)
+        for _ in range(months_ago):
+            first_day_this_month = (first_day_this_month - timedelta(days=1)).replace(day=1)
+        last_day = first_day_this_month.replace(day=monthrange(first_day_this_month.year, first_day_this_month.month)[1])
+        return first_day_this_month, last_day
+
+    def _calculate_change(self, current, previous, total):
+        """Calcula el cambio porcentual entre valores y añade el total global"""
+        epsilon = Decimal("1e-5")
+        current = Decimal(current)
+        previous = Decimal(previous)
+
+        change = ((current - previous) / (previous + epsilon)) * Decimal(100)
+        return {
+            "current": int(current),
+            "previous": int(previous),
+            "percentage_change": float(change.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            "total": int(total)
+        }
+
+    def get_orders(self, obj):
+        current_start, current_end = self._get_month_range(0)
+        previous_start, previous_end = self._get_month_range(1)
+
+        current_count = Order.objects.filter(creation_date__range=(current_start, current_end)).count()
+        previous_count = Order.objects.filter(creation_date__range=(previous_start, previous_end)).count()
+        total = Order.objects.all().count()
+
+        return self._calculate_change(current_count, previous_count, total)
+
+    def get_revenue(self, obj):
+        current_start, current_end = self._get_month_range(0)
+        previous_start, previous_end = self._get_month_range(1)
+
+        current_total = Order.objects.filter(creation_date__range=(current_start, current_end)).aggregate(total=Sum('total'))['total'] or 0
+        previous_total = Order.objects.filter(creation_date__range=(previous_start, previous_end)).aggregate(total=Sum('total'))['total'] or 0
+        total = Order.objects.aggregate(total=Sum('total'))['total'] or 0
+
+        return self._calculate_change(current_total, previous_total, total)
+
+    def get_customers(self, obj):
+        current_start, current_end = self._get_month_range(0)
+        previous_start, previous_end = self._get_month_range(1)
+
+        current = User.objects.filter(role='client', date_joined__range=(current_start, current_end)).count()
+        previous = User.objects.filter(role='client', date_joined__range=(previous_start, previous_end)).count()
+        total = User.objects.filter(role='client').count()
+
+        return self._calculate_change(current, previous, total)
+
+    def get_active_products(self, obj):
+        return Product.objects.filter(stock__gt=1).count()
+    
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
@@ -167,11 +243,11 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.save()
         return user
 
+
 class UserProfileSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfileSettings
         fields = '__all__'
-
 
 
 class NewsletterSubscriptionSerializer(serializers.ModelSerializer):
