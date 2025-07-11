@@ -116,6 +116,18 @@ class ProductCreateView(APIView):
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class AdminProductAPIView(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request, pk=None):
+        if pk:
+            pass
+        else:
+            queryset = Product.objects.all()
+            paginator = LimitOffsetPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+            serializer = ProductSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
 #retrieve all products
 class ProductListView(APIView):
     def get(self, request):
