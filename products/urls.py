@@ -5,7 +5,7 @@ from .views import (
     ProductDetailsView,
     ProductUpdateView,
     ProductRemoveView,
-    RetrieveLatestProducts
+    RetrieveLatestProducts, AdminProductAPIView
 
 )
 from products.categories.views import (
@@ -27,4 +27,5 @@ urlpatterns = [
     path('products/product/details/', ProductDetailsView.as_view()), #retrieve a single products
     path('products/product/update/', ProductUpdateView.as_view()),
     path('products/product/remove/', ProductRemoveView.as_view()), # remove a single product
+    path('dashboard/products/', AdminProductAPIView.as_view())
 ]
