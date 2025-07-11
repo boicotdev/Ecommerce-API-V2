@@ -5,8 +5,6 @@ from decouple import config
 import dj_database_url
 
 
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,7 +38,8 @@ INSTALLED_APPS = [
     'orders',
     'purchases',
     'carts',
-    'reviews'
+    'reviews',
+    'blog'
 ]
 # Application definition
 
@@ -198,7 +197,7 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-#Send email settings
+# Send email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_PORT = int(config('EMAIL_PORT', cast=int))
