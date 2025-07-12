@@ -78,11 +78,23 @@ class UnitOfMeasureView(APIView):
         unit.delete()
         return Response({"message": "Unit of measure successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
 
-
-#create a new product
-class ProductCreateView(APIView):
+class AdminProductAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    permission_classes = [IsAdminUser]
+
+    def get(self, request, sku=None):
+        if sku:
+            product = get_object_or_404(Product, sku=sku)
+            serializer = ProductSerializer(product)
+            return Response(serializer.data)
+        else:
+            queryset = Product.objects.all()
+            paginator = LimitOffsetPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+            serializer = ProductSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+
     def post(self, request):
         sku = request.data.get("sku", None)
         name = request.data.get("name", None)
@@ -116,17 +128,26 @@ class ProductCreateView(APIView):
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class AdminProductAPIView(APIView):
-    permission_classes = [IsAdminUser]
-    def get(self, request, pk=None):
-        if pk:
-            pass
-        else:
-            queryset = Product.objects.all()
-            paginator = LimitOffsetPagination()
-            paginated_queryset = paginator.paginate_queryset(queryset, request)
-            serializer = ProductSerializer(paginated_queryset, many=True)
-            return paginator.get_paginated_response(serializer.data)
+
+    def put(self, request, sku):
+        try:
+            product = get_object_or_404(Product, sku=sku)
+            serializer = ProductSerializer(product, data = request.data, partial = True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status = status.HTTP_200_OK)
+            
+            return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"message" : str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def delete(self, request, sku):
+        product = get_object_or_404(Product, sku=sku)
+        product.delete()
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
+
 
 #retrieve all products
 class ProductListView(APIView):
@@ -171,53 +192,6 @@ class ProductDetailsView(APIView):
             return Response({"message": f"Product with SKU {sku}"}, status = status.HTTP_400_BAD_REQUEST)
             
 
-        except Exception as e:
-            return Response({"message" : str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-#update a single product
-class ProductUpdateView(APIView):
-    #permission_classes = [IsAuthenticated, IsAdminUser]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
-
-    def put(self, request):
-        product_sku = request.data.get("sku")
-        if not product_sku:
-            return Response({"message" : f"Product with ID {product_sku} doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
-
-        try:
-            product = Product.objects.get(sku = product_sku)
-            serializer = ProductSerializer(product, data = request.data, partial = True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status = status.HTTP_200_OK)
-            
-            return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-        except Product.DoesNotExist:
-            return Response({"message" : f"Product with SKU {product_sku} doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({"message" : str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-#remove a single product
-class ProductRemoveView(APIView):
-    def delete(self, request):
-        #permission_classes = [IsAuthenticated, IsAdminUser]
-        product_sku = request.data.get("sku", None)
-
-        if not product_sku:
-            return Response({"message":"Product ID is required."}, status = status.HTTP_400_BAD_REQUEST)
-
-        try:
-            product = Product.objects.get(sku = product_sku)
-            product.delete()
-            return Response({"message" : "Product was deleted successfully"}, status = status.HTTP_204_NO_CONTENT)
-
-        except Product.DoesNotExist:
-            return Response({"message" : f"Product with ID {product_sku} doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
-        
         except Exception as e:
             return Response({"message" : str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
 
