@@ -56,13 +56,6 @@ class Payment(models.Model):
         return f"Payment {self.payment_id} | {self.payment_status} | ${self.payment_amount} | Order {self.order.id}"
 
 
-    #
-    # {'payment_id': 111834996467, 'order_id': '31175269122', 'external_reference': 'AVBWS90202', 'status': 'approved',
-    #  'payer_street_name': 'Diagonal 129b # 87 - 35', 'payer_street_number': '45', 'payer_zip_code': '111101'}
-    #  'status_detail': 'accredited', 'date_approved': '2025-05-20T20:35:28.000-04:00', 'transaction_amount': 2500,
-    #  'net_received_amount': 1450, 'taxes_amount': 0, 'currency_id': 'COP', 'payment_type_id': 'account_money',
-    #  'payment_method_id': 'account_money', 'payer_email': 'test_user_65923326@testuser.com', 'payer_id': '2440961568',
-    #  'payer_identification_type': 'C.C.', 'payer_identification_number': '11111111',
 
 
 class Coupon(models.Model):

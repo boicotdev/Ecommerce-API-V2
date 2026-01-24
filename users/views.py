@@ -161,7 +161,7 @@ class ClientUserListView(APIView):
 
     def get(self, request):
         try:
-            queryset = User.objects.filter(role='client')
+            queryset = User.objects.filter(role='customer')
             paginator = LimitOffsetPagination()
             paginated_queryset = paginator.paginate_queryset(queryset, request)
             serializer = UserSerializer(paginated_queryset, many=True)

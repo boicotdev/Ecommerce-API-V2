@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'purchases',
     'carts',
     'reviews',
-    'blog'
+    'blog',
+    'salesreport',
 ]
 # Application definition
 
