@@ -1,76 +1,168 @@
 # Ecommerce API
 
-Bienvenido a la **Ecommerce API**. Esta API permite gestionar productos, usuarios, carritos de compras, pedidos, y más, en una plataforma de ecommerce.
+Welcome to the **Ecommerce API**. This project provides a robust and
+scalable RESTful API for managing an e-commerce platform, including
+products, users, shopping carts, orders, and payments.
 
-### General:
-- **Versiones**:
-    Versión actual: 1.0.0
-    Fecha de lanzamiento: Octubre 2024
-- **Licencia**: M.I.T.
-- **Desarrollador**: Carlos Alberto Guzmán, carlos.guzmanscg7@gmail.com y enlace a GitHub.
+The API is designed with clean architecture principles, performance in
+mind, and is suitable both for learning purposes and as a foundation for
+real-world projects.
 
+------------------------------------------------------------------------
 
-## Características principales
-- **Gestión de productos**: Crear, leer, actualizar y eliminar productos.
-- **Gestión de usuarios**: Registro de usuarios, inicio de sesión y manejo de perfiles.
-- **Carrito de compras**: Agregar y eliminar productos del carrito.
-- **Pedidos**: Crear y gestionar pedidos.
-- **Pago**: Gestión de estados de pago y seguimiento de pedidos.
+## General Information
 
-## Tecnologías
-- **Backend**: Django + Django REST Framework (DRF)
-- **Base de datos**: PostgreSQL
-- **Autenticación**: Token Authentication / JWT (Json Web Tokens)
-  
-## Requisitos
-- Python 3.8 o superior
-- Django 3.2 o superior
-- PostgreSQL
-- Django REST Framework
+-   **Current Version**: 1.1.1
+-   **Release Date**: January 2026
+-   **License**: MIT
+-   **Author**: Carlos Alberto Guzmán\
+    📧 Email: carlos.guzmanscg7@gmail.com\
+    🔗 GitHub: https://github.com/boicotdev
 
-## Instalación
+------------------------------------------------------------------------
 
-1. Clona este repositorio:
+## Key Features
 
-   ```bash
-   git clone https://github.com/usuario/ecommerce-api.git
+-   **Product Management**\
+    Create, retrieve, update, and delete products.
 
-2. Navega al directorio del proyecto:
-   ```bash
-   cd ecommerce-api
+-   **User Management**\
+    User registration, authentication, and profile management.
 
-3. Crea y activa un entorno virtual:
-    ```bash
-   python -m venv env
-    source env/bin/activate  # En Windows usa: env\Scripts\activate
+-   **Shopping Cart**\
+    Add, update, and remove products from the cart.
 
-4. Instala las dependencias:
-    ```bash
-    pip install -r requirements.txt
+-   **Orders**\
+    Create and manage customer orders.
 
-5. Configura las variables de entorno en un archivo .env (como el nombre de la base de datos, credenciales de usuario, etc.).
+-   **Payments**\
+    Track payment status and order fulfillment.
 
-6. Realiza las migraciones:
-    ```bash
-    python manage.py migrate
+------------------------------------------------------------------------
 
-7. Crea un superusuario para acceder al panel de administración:
-    ```bash
-   python manage.py createsuperuser
+## Technology Stack
 
-8. Inicia el servidor de desarrollo:
-    ```bash
-   python manage.py runserver
+-   **Backend**: Django + Django REST Framework (DRF)
+-   **Database**: PostgreSQL
+-   **Authentication**: Token Authentication / JWT (JSON Web Tokens)
 
+------------------------------------------------------------------------
 
-# Endpoints
+## Requirements
 
-### Autenticación
+-   Python 3.10 or higher
+-   Django 4.9 or higher
+-   PostgreSQL
+-   Django REST Framework
 
-### Productos
+------------------------------------------------------------------------
 
-### Categorias
+## Installation
 
-### Ordenes
+1.  **Clone the repository**
 
-### Pagos
+``` bash
+git clone https://github.com/boicotdev/Ecommerce-API-V2.git
+```
+
+2.  **Navigate to the project directory**
+
+``` bash
+cd Ecommerce-API-V2
+```
+
+3.  **Create and activate a virtual environment**
+
+``` bash
+python -m venv env
+source env/bin/activate  # Windows: env\Scripts\activate
+```
+
+4.  **Install dependencies**
+
+``` bash
+pip install -r requirements.txt
+```
+
+5.  **Configure environment variables**
+
+Create a `.env` file and define variables such as database name, user
+credentials, secret key, etc.
+
+6.  **Apply database migrations**
+
+``` bash
+python manage.py migrate
+```
+
+7.  **Create a superuser**
+
+``` bash
+python manage.py createsuperuser
+```
+
+8.  **Run the development server**
+
+``` bash
+python manage.py runserver
+```
+
+------------------------------------------------------------------------
+
+## API Endpoints
+
+### Authentication
+
+-   User login
+-   User registration
+-   Token / JWT handling
+
+### Products
+
+-   List products
+-   Retrieve product details
+-   Create, update, and delete products
+
+### Categories
+
+-   Manage product categories
+
+### Orders
+
+-   Create orders
+-   View order history
+-   Update order status
+
+### Payments
+
+-   Manage payment status
+-   Track order fulfillment
+
+------------------------------------------------------------------------
+
+## Versioning
+
+The API follows semantic versioning:
+
+    MAJOR.MINOR.PATCH
+
+------------------------------------------------------------------------
+
+## License
+
+This project is licensed under the **MIT License**. You are free to use,
+modify, and distribute it.
+
+------------------------------------------------------------------------
+
+## Contributions
+
+Contributions are welcome! Feel free to open issues or submit pull
+requests.
+
+------------------------------------------------------------------------
+
+## Disclaimer
+
+This project is intended for educational and development purposes and
+may require additional security and optimization for production use.

@@ -14,18 +14,18 @@ class StockReportService:
         end_dt = make_aware(datetime.combine(end_date, time.max))
 
         qs = OrderProduct.objects.filter(
-            order__creation_date__gte=start_dt,
-            order__creation_date__lte=end_dt,
+            order__created_at__gte=start_dt,
+            order__created_at__lte=end_dt,
         ).exclude(
             order__status__in=["CANCELLED", "FAILED"]
         )
 
         if self.group_by == "day":
-            qs = qs.annotate(period=TruncDay("order__creation_date"))
+            qs = qs.annotate(period=TruncDay("order__created_at"))
         elif self.group_by == "month":
-            qs = qs.annotate(period=TruncMonth("order__creation_date"))
+            qs = qs.annotate(period=TruncMonth("order__created_at"))
         elif self.group_by == "year":
-            qs = qs.annotate(period=TruncYear("order__creation_date"))
+            qs = qs.annotate(period=TruncYear("order__created_at"))
 
         return (
             qs.values("period", "product_id", "product__name")

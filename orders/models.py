@@ -42,7 +42,7 @@ class Order(models.Model):
 
     id = models.CharField(primary_key=True, max_length=20)
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)
-    creation_date = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
 
@@ -67,10 +67,10 @@ class Order(models.Model):
 
 
     def __str__(self):
-        return f"Order {self.id} | {self.status} | {self.creation_date} | Last updated: {self.last_updated} | User: {self.user.username}"
+        return f"Order {self.id} | {self.status} | {self.created_at} | Last updated: {self.last_updated} | User: {self.user.username}"
 
     class Meta:
-        ordering = ['-creation_date']
+        ordering = ['-created_at']
 
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -79,6 +79,46 @@ class OrderProduct(models.Model):
     quantity = models.IntegerField()
     measure_unity = models.ForeignKey(UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL,
                                       verbose_name="unity")
+    
 
     def __str__(self):
         return f"OrderProduct: {self.product.name} (x{self.quantity}) in Order {self.order.pk}"
+
+class StockMovement(models.Model):
+    MOVEMENT_TYPES = (
+        ("IN", "IN"),           # purchase, return, possitive adjust
+        ("OUT", "OUT"),         # purchase
+        ("ADJUST", "ADJUST"),   # manual adjust
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="stock_movements"
+    )
+
+    movement_type = models.CharField(
+        max_length=10,
+        choices=MOVEMENT_TYPES
+    )
+
+    quantity = models.IntegerField()
+
+    reason = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
+
+    related_order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        sign = '+' if self.movement_type == 'IN' else '-'
+        return f"{self.product.name} {sign}{self.quantity}"
