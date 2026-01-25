@@ -14,7 +14,7 @@ venv/
 
 # Ignorar archivos de configuración de entorno
 .env
-
+todo.md
 # Ignorar archivos y directorios de logs
 *.log
 *.log.*

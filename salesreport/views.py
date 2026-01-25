@@ -25,15 +25,17 @@ class ReportsAPIView(APIView):
         report_type = request.query_params.get('type')
         serializer = ReportParamsSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-
+        result = None
         data = serializer.validated_data
 
+        #TODO: Save the report data inside of database.
         if report_type == 'sales':
             service = SalesReportService(group_by=data['group_by'])
             report = BaseReportHandler(serializer, service)
-            return Response(report.result, status = status.HTTP_200_OK)
+            result = report.result
+            return Response(result, status = status.HTTP_200_OK)
         else:
             service = StockReportService(group_by=data['group_by'])
             report = BaseReportHandler(serializer, service)
-            return Response(report.result, status = status.HTTP_200_OK)
-
+            result = report.result
+            return Response(result, status = status.HTTP_200_OK)

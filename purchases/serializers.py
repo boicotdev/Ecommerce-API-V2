@@ -25,9 +25,9 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = Purchase
         fields = ["id", "purchased_by", "purchase_date", "last_updated", "total_amount", "global_sell_percentage", "estimated_profit", "purchase_items"]
     def validate_global_sell_percentage(self, value):
-        """Valida que el porcentaje de venta global sea al menos 10%"""
+        """ Check that the global percent is equal or grather than 10%"""
         if value is None or value < 10:
-            raise serializers.ValidationError("El porcentaje de venta debe ser al menos 10%")
+            raise serializers.ValidationError("The global percent must be 10% at least")
         return value
 
 
