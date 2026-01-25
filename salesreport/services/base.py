@@ -6,7 +6,7 @@ class BaseReportService:
         self.queryset = queryset
         self.group_by = group_by
 
-    def apply_grouping(self):
+    def _apply_grouping(self):
         if self.group_by == "day":
             return self.queryset.annotate(period=TruncDay("created_at"))
         if self.group_by == "month":
