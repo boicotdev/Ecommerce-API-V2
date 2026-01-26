@@ -1,4 +1,5 @@
-from django.db.models import Sum, Count
+from datetime import datetime
+from django.db.models import Value, Sum, Count
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from payments.models import Payment
 
@@ -30,6 +31,7 @@ class SalesReportService:
                   net_sales=Sum("net_received_amount"),
                   taxes=Sum("taxes_amount"),
                   total_transactions=Count("id"),
+                  created_at=Value(str(datetime.now())),
               )
               .order_by("period")
         )
