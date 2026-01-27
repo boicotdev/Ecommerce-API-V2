@@ -16,6 +16,7 @@ class Purchase(models.Model):
         blank=True,
         related_name="user_admin"
     )
+    additional_costs = models.FloatField(default=0)  # freight, taxes, etc
     purchase_date = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True)
     total_amount = models.FloatField(default=0)  # Total purchase amount
@@ -76,9 +77,9 @@ class PurchaseItem(models.Model):
 
         # Apply the sell percentage to the subtotal
         subtotal_with_margin = self.subtotal() + (self.subtotal() * (sell_percentage / 100))
-
-        # Calculate sale price based on unit measure weight and quantity
-        return subtotal_with_margin / (self.unit_measure.weight * self.quantity)
+        cost_by_grams = subtotal_with_margin / (self.unit_measure.weight * self.quantity)
+        pvsp = cost_by_grams * self.unit_measure.weight #suggested retail price
+        return pvsp
 
     def __str__(self):
         if self.product:
@@ -96,18 +97,17 @@ def generate_unique_id(user_dni, purchase=False):
     """
     Generates a unique ID with the following formats:
     - Order:   "AVBXX9YYYYYYYY" (XX = letters, 9 = number, YYYYYYYY = DNI)
-    - Purchase: "COMP-AVBXX9YY" (XX = letters, 9 = number, YY = last 2 digits of DNI)
+    - Purchase: "PURCH-AVBXX9YY" (XX = letters, 9 = number, YY = last 2 digits of DNI)
     """
 
     while True:
         if purchase:
-            # Prefix for purchases: COMP-AVBXX9YY (last digits of DNI)
             prefix = (
                 f"{random.choice(string.ascii_uppercase)}"
                 f"{random.choice(string.ascii_uppercase)}"
                 f"{random.randint(0, 9)}"
             )
-            unique_id = f"COMP-AVB{prefix}{str(user_dni)[-4:]}"
+            unique_id = f"PURCH-AVB{prefix}{str(user_dni)[-4:]}"
 
             if not Purchase.objects.filter(id=unique_id).exists():
                 return unique_id

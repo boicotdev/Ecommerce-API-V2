@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from products.services.excel_file_handler import ExcelProductParser, ProductBulkCreateService
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -13,7 +14,7 @@ from users.models import User
 from .models import Category, Product, UnitOfMeasure
 from carts.models import Cart, ProductCart
 from .serializers import (
-    ProductSerializer, UnitOfMeasureSerializer, )
+    ProductSerializer, UnitOfMeasureSerializer, ProductImportSerializer)
 from carts.serializers import ProductCartSerializer
 
 
@@ -77,6 +78,25 @@ class UnitOfMeasureView(APIView):
         unit = get_object_or_404(UnitOfMeasure, id=unit_id)
         unit.delete()
         return Response({"message": "Unit of measure successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+class ProductImportView(APIView):
+    def post(self, request):
+        serializer = ProductImportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        excel_file = serializer.validated_data["file"]
+
+        parser = ExcelProductParser()
+        products_data = parser.parse(excel_file)
+
+        service = ProductBulkCreateService()
+        result = service.execute(products_data)
+
+        return Response({
+            "message": "Products imported successfully",
+            **result
+        }, status=status.HTTP_201_CREATED)
+
 
 class AdminProductAPIView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]

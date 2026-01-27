@@ -8,12 +8,35 @@ from .models import (
     Category, UnitOfMeasure
 )
 
+class ProductImportSerializer(serializers.Serializer):
+    file = serializers.FileField()
 
 class UnitOfMeasureSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnitOfMeasure
         fields = '__all__'
 
+
+class ProductCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = [
+            "sku",
+            "name",
+            "description",
+            "price",
+            "discount_price",
+            "purchase_price",
+            "stock",
+            "category",
+            "score",
+            "recommended",
+            "best_seller",
+            "tag",
+            "quality",
+            "weight",
+            "slug",
+        ]
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

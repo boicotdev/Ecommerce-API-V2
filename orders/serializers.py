@@ -3,8 +3,7 @@ from orders.models import OrderProduct, Order
 from payments.serializers import PaymentSerializer
 from products.serializers import ProductSerializer, UserDetailsSerializer
 from shipments.serializers import ShipmentSerializer
-from users.models import User
-from users.serializers import AdminSerializer, UserSerializer
+from users.serializers import UserSerializer
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
@@ -23,7 +22,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'user_details', 'payment', 'creation_date', 'last_updated', 'status',
+        fields = ['id', 'user_details', 'payment', 'created_at', 'last_updated', 'status',
                   'products', 'subtotal', 'total', 'discount_applied', 'discount_value', 'discount_type', 'shipping_details', 'shipping_cost']
 
     def get_user_details(self, obj):

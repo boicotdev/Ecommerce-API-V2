@@ -4,12 +4,11 @@ from orders.models import Order, OrderProduct, StockMovement
 from .models import Purchase, MissingItems, PurchaseItem
 
 @receiver(post_save, sender=PurchaseItem)
-def update_purchase_total(sender, instance, created, **kwargs):
+def update_purchase_totals(sender, instance, created, **kwargs):
 
     if created:
         purchase = instance.purchase
-        purchase.total_amount += instance.subtotal()
-        purchase.save()
+        purchase.update_totals()
 
 @receiver(post_save, sender=PurchaseItem)
 def create_stock_movement_record(sender, instance, created, **kwargs):

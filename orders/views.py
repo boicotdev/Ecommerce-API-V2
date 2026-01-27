@@ -83,7 +83,7 @@ class AdminOrderCreateView(APIView):
                     return Response({'message': f"Product with ID {item['product_id']} not found"},
                                     status=status.HTTP_404_NOT_FOUND)
 
-                # Validar la unidad de medida si existe en los datos
+                #Validate the unit of measurement if it exists in the data
                 unit = None
                 if 'measure_unity' in item:
                     try:
@@ -97,7 +97,7 @@ class AdminOrderCreateView(APIView):
                     product=product,
                     quantity=item['quantity'],
                     price=item['price'],
-                    measure_unity=unit  # Asignamos la unidad de medida si existe
+                    measure_unity=unit  # We assign the unit of measurement if it exists
                 ))
 
             OrderProduct.objects.bulk_create(order_items)
@@ -147,17 +147,17 @@ class OrderUserCancelView(APIView):
         if not order_id or not user_id or not new_status:
             return Response({"message": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Buscar la orden que pertenezca al usuario
+        #search for the order that belongs to the user 
         order = Order.objects.filter(pk=order_id, user_id=user_id).first()
 
         if not order:
             return Response({"message": "Order not found or does not belong to user"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Verificar si la orden tiene un pago asociado
+        # Verify if the order has a related payment. vVerificar si la orden tiene un pago asociado
         has_payment = Payment.objects.filter(order=order).exists()
 
-        # Definir los estados en los que se puede cancelar la orden
+        # Define the states in which the order can be cancelled
         cancelable_status = {"PENDING", "ON_HOLD"}
         if has_payment:
             cancelable_status.update({"PENDING", "FAILED"})
@@ -166,7 +166,7 @@ class OrderUserCancelView(APIView):
             return Response({"message": f"No se puede cancelar en este estado {order.status}"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Actualizar el estado de la orden a CANCELLED
+        # Update order status to CANCELLED
         serializer = OrderSerializer(order, data={"status": "CANCELLED"}, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -227,7 +227,7 @@ class OrderDashboardDetailsView(APIView):
         try:
             order = Order.objects.get(pk=order_id)
 
-            # Verificar permisos a nivel de objeto
+            # Verify Object-Level permissions
             self.check_object_permissions(request, order)
 
             serializer = OrderSerializer(order).data

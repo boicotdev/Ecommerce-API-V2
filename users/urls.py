@@ -16,7 +16,7 @@ urlpatterns = [
     path("users/data/", RetrieveAdminData.as_view()),  # retrieve admin data
     path("users/logout/", LogoutUserView.as_view()),  # kill a user session
     path("users/create/", UserCreateView.as_view()),  # create a new user
-    path("dashboard/clients/", ClientUserListView.as_view()),  # retrieve all user clients
+    path("dashboard/customers/", ClientUserListView.as_view()),  # retrieve all user clients
     path("users/user/", UserDetailsView.as_view()),  # retrieve all info of a single user
     path("users/update/", UserUpdateView.as_view()),  # edit a single user
     path("users/delete/", UserDeleteView.as_view()),  # delete a single user
