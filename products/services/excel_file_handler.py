@@ -55,6 +55,10 @@ class ExcelProductParser:
 
 
 class ProductBulkCreateService:
+    """
+    Class performs a `Model.objects.bulk_create()` operation
+    Raise an Exception if the operation can't be performanced
+    """
     def execute(self, products_data: list[dict]) -> dict:
         serializer = ProductCreateSerializer(
             data=products_data,

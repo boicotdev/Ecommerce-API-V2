@@ -143,7 +143,6 @@ class AdminProductAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            print(serializer.errors)
             return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
