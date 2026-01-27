@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from products.services.excel_file_handler import ExcelProductParser, ProductBulkCreateService
+from products.services.filter_service import ProductFilterService
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -14,9 +15,32 @@ from users.models import User
 from .models import Category, Product, UnitOfMeasure
 from carts.models import Cart, ProductCart
 from .serializers import (
-    ProductSerializer, UnitOfMeasureSerializer, ProductImportSerializer)
+    ProductSearchParams, ProductSerializer, UnitOfMeasureSerializer, ProductImportSerializer)
 from carts.serializers import ProductCartSerializer
 
+class ProductFilterAPIView(APIView):
+    def get(self, request):
+        results = self.get_queryset(request)
+        print(len(results))
+        return Response(ProductSerializer(results, many=True).data, status=status.HTTP_200_OK)
+
+    def get_queryset(self, request):
+        service = ProductFilterService(request.query_params)
+        return service.search()
+
+class ProductSearchAPIView(APIView):
+    def get(self, request):
+        serializer = ProductSearchParams(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        
+        
+        #getting the matches
+        try:
+            product = Product.objects.get(slug=serializer.data['slug'])
+            response_serializer = ProductSerializer(product)
+            return Response(response_serializer.data, status = status.HTTP_200_OK)    
+        except Product.DoesNotExist:
+            return Response({'message':'Product not found'}, status = status.HTTP_404_NOT_FOUND)    
 
 class UnitOfMeasureView(APIView):
     """

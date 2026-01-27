@@ -8,6 +8,12 @@ from .models import (
     Category, UnitOfMeasure
 )
 
+class ProductSearchParams(serializers.Serializer):
+    slug = serializers.SlugField()
+
+    class Meta:
+        fields = '__all__'
+
 class ProductImportSerializer(serializers.Serializer):
     file = serializers.FileField()
 
