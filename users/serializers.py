@@ -193,8 +193,8 @@ class AdminSerializer(serializers.ModelSerializer):
         current_start, current_end = self._get_month_range(0)
         previous_start, previous_end = self._get_month_range(1)
 
-        current_count = Order.objects.filter(creation_date__range=(current_start, current_end)).count()
-        previous_count = Order.objects.filter(creation_date__range=(previous_start, previous_end)).count()
+        current_count = Order.objects.filter(created_at__range=(current_start, current_end)).count()
+        previous_count = Order.objects.filter(created_at__range=(previous_start, previous_end)).count()
         total = Order.objects.all().count()
 
         return self._calculate_change(current_count, previous_count, total)
@@ -203,8 +203,8 @@ class AdminSerializer(serializers.ModelSerializer):
         current_start, current_end = self._get_month_range(0)
         previous_start, previous_end = self._get_month_range(1)
 
-        current_total = Order.objects.filter(creation_date__range=(current_start, current_end)).aggregate(total=Sum('total'))['total'] or 0
-        previous_total = Order.objects.filter(creation_date__range=(previous_start, previous_end)).aggregate(total=Sum('total'))['total'] or 0
+        current_total = Order.objects.filter(created_at__range=(current_start, current_end)).aggregate(total=Sum('total'))['total'] or 0
+        previous_total = Order.objects.filter(created_at__range=(previous_start, previous_end)).aggregate(total=Sum('total'))['total'] or 0
         total = Order.objects.aggregate(total=Sum('total'))['total'] or 0
 
         return self._calculate_change(current_total, previous_total, total)

@@ -549,7 +549,7 @@
             <div class="invoice-title">
                 <div class="invoice-label">Factura Electrónica</div>
                 <div class="invoice-number">{{ sale.invoice_number|default:sale.order.id }}</div>
-                <div class="invoice-date">{{ sale.order.creation_date|date:"d/m/Y" }}</div>
+                <div class="invoice-date">{{ sale.order.created_at|date:"d/m/Y" }}</div>
                 <div class="status-badge">Pagado</div>
             </div>
         </header>
@@ -620,8 +620,8 @@
 
                 <div class="info-group">
                     <div class="info-label">Detalles de la factura</div>
-                    <div class="info-value"><span style="color: var(--gray-500);">Fecha de emisión:</span> {{ sale.order.creation_date|date:"l, d \\d\\e F \\d\\e Y – h:i A" }}</div>
-                    <div class="info-value"><span style="color: var(--gray-500);">Fecha de vencimiento:</span> {{ sale.due_date|default:sale.order.creation_date|date:"d/m/Y" }}</div>
+                    <div class="info-value"><span style="color: var(--gray-500);">Fecha de emisión:</span> {{ sale.order.created_at|date:"l, d \\d\\e F \\d\\e Y – h:i A" }}</div>
+                    <div class="info-value"><span style="color: var(--gray-500);">Fecha de vencimiento:</span> {{ sale.due_date|default:sale.order.created_at|date:"d/m/Y" }}</div>
                 </div>
             </div>
         </section>

@@ -280,7 +280,7 @@ class MercadoPagoWebhookView(APIView):
                 "subscriber_name": request.data.get('email'),
                 "site_url": "https://avoberry.vercel.app/",
                 "year": datetime.datetime.now().year,
-                'order_date': order.creation_date,
+                'order_date': order.created_at,
                 'customer_name': f'{order.user.first_name} {order.user.last_name}',
                 'payment_method': info['payment_method_id'],
                 'delivery_date': 'Pending',

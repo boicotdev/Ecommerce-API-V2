@@ -1,19 +1,46 @@
 from rest_framework import serializers
-
+from products.models import Product
 from products.serializers import ProductSerializer
 from orders.serializers import OrderSerializer
 from .models import PurchaseItem, Purchase, MissingItems
-
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
     subtotal = serializers.ReadOnlyField()
     estimated_profit = serializers.ReadOnlyField()
     sale_price_per_weight = serializers.ReadOnlyField()
-    product = ProductSerializer()
+
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all()
+    )
+
+    purchase = serializers.PrimaryKeyRelatedField(
+        queryset=Purchase.objects.all()
+    )
 
     class Meta:
         model = PurchaseItem
-        fields = ["id", "product", "quantity", "purchase_price", "sell_percentage", "unit_measure", "subtotal", "estimated_profit", "sale_price_per_weight"]
+        fields = [
+            "id",
+            "product",
+            "purchase",
+            "quantity",
+            "purchase_price",
+            "sell_percentage",
+            "unit_measure",
+            "subtotal",
+            "estimated_profit",
+            "sale_price_per_weight",
+        ]
+
+# class PurchaseItemSerializer(serializers.ModelSerializer):
+#     subtotal = serializers.ReadOnlyField()
+#     estimated_profit = serializers.ReadOnlyField()
+#     sale_price_per_weight = serializers.ReadOnlyField()
+#     product = ProductSerializer()
+#
+#     class Meta:
+#         model = PurchaseItem
+#         fields = ["id", "product", "quantity", "purchase_price", "sell_percentage", "unit_measure", "subtotal", "estimated_profit", "sale_price_per_weight"]
 
 
 class PurchaseSerializer(serializers.ModelSerializer):

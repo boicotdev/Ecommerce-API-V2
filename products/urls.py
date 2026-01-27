@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    ProductImportView,
     ProductListView,
     ProductDetailsView,
     RetrieveLatestProducts, AdminProductAPIView
@@ -12,6 +13,7 @@ urlpatterns = [
     path('products/categories/', AdminCategoriesAPIView.as_view()),
 
     path('products/categories/<int:pk>/', AdminCategoriesAPIView.as_view()),
+    path('products/import/', ProductImportView.as_view()),
     path('products/list/', ProductListView.as_view()),  # retrieve all products
     path('products/latest/', RetrieveLatestProducts.as_view()),
     # retrieve a single products

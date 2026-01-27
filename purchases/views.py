@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from products.models import Product, UnitOfMeasure
 from purchases.models import Purchase, PurchaseItem, MissingItems
-from purchases.serializers import PurchaseSerializer, MissingItemSerializer
+from purchases.serializers import PurchaseItemSerializer, PurchaseSerializer, MissingItemSerializer
 
 
 # Create your views here.
@@ -31,6 +31,18 @@ class PurchaseDeleteView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class PurchaseItemAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        data = request.data
+        serializer = PurchaseItemSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PurchaseListView(ListAPIView):
     """
@@ -80,7 +92,7 @@ class PurchaseCreateUpdateView(APIView):
 
     def post(self, request):
         """Crea una nueva compra."""
-        required_fields = {"purchased_by", "purchase_date", "global_sell_percentage", "items"}
+        required_fields = {"purchased_by", "purchase_date", "global_sell_percentage"}
         missing_fields = required_fields - request.data.keys()
         if missing_fields:
             return Response({"error": f"Missing fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -92,59 +104,74 @@ class PurchaseCreateUpdateView(APIView):
         items_data = request.data.get("items", [])
         purchase_date = request.data.get("purchase_date")
 
-        if not items_data:
-            return Response({"error": "At least one purchase item is required."}, status=status.HTTP_400_BAD_REQUEST)
+        # if not items_data:
+        #     return Response({"error": "At least one purchase item is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(items_data) > 0:
 
-        try:
-            with transaction.atomic():
-                # Crear la compra
-                purchase = Purchase.objects.create(
-                    purchased_by_id=purchased_by,
-                    global_sell_percentage=global_sell_percentage,
-                    purchase_date=purchase_date
-                )
-
-                purchase_items = []
-                for item in items_data:
-                    product_sku = item.get("product")
-                    quantity = item.get("quantity")
-                    purchase_price = item.get("purchase_price")
-                    sell_percentage = item.get("sell_percentage")
-                    unit_measure = item.get("unit_measure")
-
-                    if not all([product_sku, quantity, purchase_price, unit_measure]):
-                        return Response(
-                            {"error": "Each item must have product, quantity, purchase_price, and unit_measure."},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-
-                    product = Product.objects.get(sku=product_sku)
-                    unit_measure = UnitOfMeasure.objects.get(pk=unit_measure)
-
-                    purchase_items.append(
-                        PurchaseItem(
-                            purchase=purchase,
-                            product=product,
-                            quantity=quantity,
-                            purchase_price=purchase_price,
-                            sell_percentage=sell_percentage,
-                            unit_measure=unit_measure
-                        )
+            try:
+                with transaction.atomic():
+                    # Crear la compra
+                    purchase = Purchase.objects.create(
+                        purchased_by_id=purchased_by,
+                        global_sell_percentage=global_sell_percentage,
+                        purchase_date=purchase_date
                     )
 
-                PurchaseItem.objects.bulk_create(purchase_items)
-                purchase.update_totals()  # Actualiza totales y ganancias estimadas
 
-                return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
+                    purchase_items = []
+                    for item in items_data:
+                        product_sku = item.get("product")
+                        quantity = item.get("quantity")
+                        purchase_price = item.get("purchase_price")
+                        sell_percentage = item.get("sell_percentage")
+                        unit_measure = item.get("unit_measure")
 
-        except Product.DoesNotExist:
-            return Response({"error": "One or more products do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+                        if not all([product_sku, quantity, purchase_price, unit_measure]):
+                            return Response(
+                                {"error": "Each item must have product, quantity, purchase_price, and unit_measure."},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
 
-        except UnitOfMeasure.DoesNotExist:
-            return Response({"error": "One or more unit measures do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+                        product = Product.objects.get(sku=product_sku)
+                        unit_measure = UnitOfMeasure.objects.get(pk=unit_measure)
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                        purchase_items.append(
+                            PurchaseItem(
+                                purchase=purchase,
+                                product=product,
+                                quantity=quantity,
+                                purchase_price=purchase_price,
+                                sell_percentage=sell_percentage,
+                                unit_measure=unit_measure
+                            )
+                        )
+
+                    PurchaseItem.objects.bulk_create(purchase_items)
+                    purchase.update_totals()  # Update totals and estimated earnings
+
+                    return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
+
+            except Product.DoesNotExist:
+                return Response({"error": "One or more products do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+            except UnitOfMeasure.DoesNotExist:
+                return Response({"error": "One or more unit measures do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+        
+            print('else path')
+            purchase = Purchase.objects.create(
+                purchased_by_id=purchased_by,
+                global_sell_percentage=global_sell_percentage,
+                purchase_date=purchase_date
+            )
+
+            purchase.update_totals()  # Update totals and estimated earnings
+            return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
+        
+        
 
     def put(self, request):
         purchase_id = request.data.get("purchase_id")
