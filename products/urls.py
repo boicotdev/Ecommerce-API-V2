@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    ProductFilterAPIView,
     ProductImportView,
     ProductListView,
     ProductDetailsView,
@@ -16,6 +17,7 @@ urlpatterns = [
     path('products/import/', ProductImportView.as_view()),
     path('products/list/', ProductListView.as_view()),  # retrieve all products
     path('products/latest/', RetrieveLatestProducts.as_view()),
+    path('products/filter/', ProductFilterAPIView.as_view()),
     # retrieve a single products
     path('products/product/details/', ProductDetailsView.as_view()),
     path('dashboard/products/', AdminProductAPIView.as_view()),

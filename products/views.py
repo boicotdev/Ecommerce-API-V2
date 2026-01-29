@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from products.services.excel_file_handler import ExcelProductParser, ProductBulkCreateService
+from products.services.filter_service import ProductFilterService
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -10,13 +11,29 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import LimitOffsetPagination
 
 from orders.models import Order, OrderProduct
+from reviews import serializers
 from users.models import User
 from .models import Category, Product, UnitOfMeasure
 from carts.models import Cart, ProductCart
 from .serializers import (
-    ProductSerializer, UnitOfMeasureSerializer, ProductImportSerializer)
+    ProductSerializer,
+    UnitOfMeasureSerializer,
+    ProductImportSerializer
+)
 from carts.serializers import ProductCartSerializer
 
+class ProductFilterAPIView(APIView):
+    def get(self, request):
+        results = self.get_queryset(request)
+        paginator = LimitOffsetPagination()
+        paginated_queryset = paginator.paginate_queryset(results, request)
+        serializer = ProductSerializer(paginated_queryset, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
+
+    def get_queryset(self, request):
+        service = ProductFilterService(request.query_params)
+        return service.search()
 
 class UnitOfMeasureView(APIView):
     """
