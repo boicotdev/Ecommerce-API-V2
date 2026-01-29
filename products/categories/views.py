@@ -8,7 +8,7 @@ from products.models import Category
 
 # Admin handle categories
 class AdminCategoriesAPIView(APIView):
-    permission_classes = [IsAdminUser]
+    #permission_classes = [IsAdminUser]
 
     def post(self, request):
         category_name = request.data.get("name", None)

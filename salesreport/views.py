@@ -1,12 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers.report_params import ReportParamsSerializer # serializers/report_params.py
 from rest_framework.permissions import IsAdminUser
+from salesreport.serializers.serializers import SalesDataReportSerializer
 from .serializers.report_params import ReportParamsSerializer
 from .services.sales_report import SalesReportService
 from .services.stock_report import StockReportService
-
+from users.models import User
+from payments.models import Payment
 
 class BaseReportHandler:
     def __init__(self,serializer, service) -> None:
@@ -39,3 +40,29 @@ class ReportsAPIView(APIView):
             report = BaseReportHandler(serializer, service)
             result = report.result
             return Response(result, status = status.HTTP_200_OK)
+
+class AnalyticsSalesReportsAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        sales_data = []
+        for i, month in enumerate(months):
+            # i = i + 1
+            sales_data.append({
+                'month': month,
+                'revenue': sum([item.payment_amount for item in Payment.objects.filter(payment_date__month=i)]),
+                'orders': Payment.objects.filter(payment_date__month=i).count(),
+                'customers': User.objects.filter(date_joined__month=i).count()
+            })
+
+            
+        serializer = SalesDataReportSerializer(data=sales_data, many=True)
+        serializer.is_valid(raise_exception=True)
+        return Response({
+            'sales_data': serializer.data,
+        }, status = status.HTTP_200_OK)
+
+
+
+

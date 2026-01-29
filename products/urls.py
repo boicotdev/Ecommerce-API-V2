@@ -4,7 +4,6 @@ from .views import (
     ProductImportView,
     ProductListView,
     ProductDetailsView,
-    ProductSearchAPIView,
     RetrieveLatestProducts, AdminProductAPIView
 
 )
@@ -18,7 +17,6 @@ urlpatterns = [
     path('products/import/', ProductImportView.as_view()),
     path('products/list/', ProductListView.as_view()),  # retrieve all products
     path('products/latest/', RetrieveLatestProducts.as_view()),
-    path('products/search/', ProductSearchAPIView.as_view()),
     path('products/filter/', ProductFilterAPIView.as_view()),
     # retrieve a single products
     path('products/product/details/', ProductDetailsView.as_view()),

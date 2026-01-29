@@ -11,36 +11,29 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import LimitOffsetPagination
 
 from orders.models import Order, OrderProduct
+from reviews import serializers
 from users.models import User
 from .models import Category, Product, UnitOfMeasure
 from carts.models import Cart, ProductCart
 from .serializers import (
-    ProductSearchParams, ProductSerializer, UnitOfMeasureSerializer, ProductImportSerializer)
+    ProductSerializer,
+    UnitOfMeasureSerializer,
+    ProductImportSerializer
+)
 from carts.serializers import ProductCartSerializer
 
 class ProductFilterAPIView(APIView):
     def get(self, request):
         results = self.get_queryset(request)
-        print(len(results))
-        return Response(ProductSerializer(results, many=True).data, status=status.HTTP_200_OK)
+        paginator = LimitOffsetPagination()
+        paginated_queryset = paginator.paginate_queryset(results, request)
+        serializer = ProductSerializer(paginated_queryset, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
 
     def get_queryset(self, request):
         service = ProductFilterService(request.query_params)
         return service.search()
-
-class ProductSearchAPIView(APIView):
-    def get(self, request):
-        serializer = ProductSearchParams(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-        
-        
-        #getting the matches
-        try:
-            product = Product.objects.get(slug=serializer.data['slug'])
-            response_serializer = ProductSerializer(product)
-            return Response(response_serializer.data, status = status.HTTP_200_OK)    
-        except Product.DoesNotExist:
-            return Response({'message':'Product not found'}, status = status.HTTP_404_NOT_FOUND)    
 
 class UnitOfMeasureView(APIView):
     """

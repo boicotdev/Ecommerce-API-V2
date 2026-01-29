@@ -50,6 +50,12 @@ class ProductFilterService:
         if self.options.get("weight_max"):
             filters["weight__value__lte"] = self._to_float(self.options["weight_max"])
 
+        # Name related model
+        if self.options.get("name"):
+            filters["name__icontains"] = self.options["name"]
+
+
+
         self.results = self.results.filter(**filters)
 
         return self.results
