@@ -2,6 +2,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from products.services.excel_file_handler import ExcelProductParser, ProductBulkCreateService
 from products.services.filter_service import ProductFilterService
+from purchases.models import SuggestedRetailPrice
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -11,16 +12,19 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import LimitOffsetPagination
 
 from orders.models import Order, OrderProduct
-from reviews import serializers
+from .serializers import SuggestedRetailPriceSerializer
 from users.models import User
 from .models import Category, Product, UnitOfMeasure
 from carts.models import Cart, ProductCart
 from .serializers import (
-    ProductSerializer,
-    UnitOfMeasureSerializer,
-    ProductImportSerializer
-)
+        ProductSerializer,
+        UnitOfMeasureSerializer,
+        ProductImportSerializer
+        )
 from carts.serializers import ProductCartSerializer
+
+
+
 
 class ProductFilterAPIView(APIView):
     def get(self, request):
@@ -50,11 +54,9 @@ class UnitOfMeasureView(APIView):
         """
         try:
             if unit_id:
-                # Fetch a single unit or return a 404 error if not found
                 unit = get_object_or_404(UnitOfMeasure, id=unit_id)
                 serializer = UnitOfMeasureSerializer(unit)
             else:
-                # Fetch all units
                 units = UnitOfMeasure.objects.all()
                 serializer = UnitOfMeasureSerializer(units, many=True)
 
@@ -97,6 +99,8 @@ class UnitOfMeasureView(APIView):
         return Response({"message": "Unit of measure successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 class ProductImportView(APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request):
         serializer = ProductImportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -112,7 +116,7 @@ class ProductImportView(APIView):
         return Response({
             "message": "Products imported successfully",
             **result
-        }, status=status.HTTP_201_CREATED)
+            }, status=status.HTTP_201_CREATED)
 
 
 class AdminProductAPIView(APIView):
@@ -161,10 +165,8 @@ class AdminProductAPIView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
     def put(self, request, sku):
@@ -174,7 +176,7 @@ class AdminProductAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status = status.HTTP_200_OK)
-            
+
             return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
@@ -217,10 +219,10 @@ class RetrieveLatestProducts(ListAPIView):
 class ProductDetailsView(APIView):
     def get(self, request):
         sku = request.query_params.get("sku", None)
-        
+
         if not sku:
             return Response({"message":"Sku is required"}, status = status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             product = Product.objects.get(sku = sku)
             serializer = ProductSerializer(product)
@@ -228,7 +230,7 @@ class ProductDetailsView(APIView):
 
         except Product.DoesNotExist:
             return Response({"message": f"Product with SKU {sku}"}, status = status.HTTP_400_BAD_REQUEST)
-            
+
 
         except Exception as e:
             return Response({"message" : str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -240,7 +242,7 @@ class ProductCartCreateView(APIView):
         products = request.data.get("products", [])
 
 
-        # Validación de campos obligatorios
+        # Validation of required fields
         if not cart_id or not products:
             return Response({"message": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -248,25 +250,24 @@ class ProductCartCreateView(APIView):
             cart = Cart.objects.get(pk=cart_id)
         except Cart.DoesNotExist:
             return Response(
-                {"message": "Cart not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+                    {"message": "Cart not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                    )
 
         try:
-            # Recuperar los productos en una sola consulta
+
             product_skus = [product["sku"] for product in products]
             products_db = Product.objects.filter(sku__in=product_skus)
             product_map = {product.sku: product for product in products_db}
 
-            # Verificar que todos los SKUs sean válidos
+            # Check that all SKU'S are valid
             missing_skus = set(product_skus) - set(product_map.keys())
             if missing_skus:
                 return Response(
-                    {"message": f"Products not found for SKUs: {', '.join(missing_skus)}"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                        {"message": f"Products not found for SKUs: {', '.join(missing_skus)}"},
+                        status=status.HTTP_404_NOT_FOUND,
+                        )
 
-            # Crear ProductCart en una transacción atómica
             with transaction.atomic():
                 product_carts = []
                 for product_data in products:
@@ -275,8 +276,8 @@ class ProductCartCreateView(APIView):
                     product = product_map[sku]
 
                     product_cart = ProductCart.objects.create(
-                        cart=cart, product=product, quantity=quantity
-                    )
+                            cart=cart, product=product, quantity=quantity
+                            )
                     product_carts.append(product_cart)
 
                 serializer = ProductCartSerializer(product_carts, many=True)
@@ -284,14 +285,14 @@ class ProductCartCreateView(APIView):
 
         except Exception as e:
             return Response(
-                {"message": f"An error occurred: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+                    {"message": f"An error occurred: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
         #handling exceptions
         except Cart.DoesNotExist:
             return Response({"message": f"Cart with ID {cart_id} doesn't exists."},
-                                                                status = status.HTTP_400_BAD_REQUEST)
+                            status = status.HTTP_400_BAD_REQUEST)
 
         except Product.DoesNotExist:
             return Response({"message": f"Product doesn't exists."}, status = status.HTTP_400_BAD_REQUEST)
@@ -339,17 +340,44 @@ class ProductCartHasChanged(APIView):
         except Order.DoesNotExist:
             return Response({'changed': True, 'message': 'No active order found'}, status=status.HTTP_200_OK)
 
-        # Convertir los productos de la orden en un diccionario {product_id: quantity}
         order_product_map = {op.product.sku: op.quantity for op in order_products}
 
-        # Convertir los productos enviados en un diccionario {product_id: quantity}
         request_product_map = {item["sku"]: item["quantity"] for item in items}
 
-        # Comparar si las claves (productos) o los valores (cantidades) han cambiado
         if order_product_map != request_product_map:
             return Response({'changed': True}, status=status.HTTP_200_OK)
 
         return Response({'changed': False}, status=status.HTTP_200_OK)
+
+
+class SuggestedRetailPricesAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+
+    def post(self, request):
+        data = request.data
+        if not 'products' in data:
+            return Response({'error': 'At least a product item is required!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        products = data.get('products')
+        skus = [prod['sku'] for prod in products]
+        
+        to_update_products = Product.objects.filter(sku__in=skus)
+        for i, prod in enumerate(to_update_products):
+            prod.price = products[i]['new_price']
+    
+
+        with transaction.atomic():
+            Product.objects.bulk_update(to_update_products, ['price'])
+            return Response({'message': f'{len(to_update_products)} products prices has been updates.'})
+
+    def get(self, request):
+        queryset = SuggestedRetailPrice.objects.all()
+        paginator = LimitOffsetPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = SuggestedRetailPriceSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
 
 
 class ProductCartUserRemove(APIView):
@@ -366,13 +394,11 @@ class ProductCartUserRemove(APIView):
             cart = Cart.objects.filter(pk = cart_id, user = user).first()
             product = ProductCart.objects.filter(pk = product_id, cart = cart).first()
 
-            #check if Cart or ProductCart not exists
             if not cart:
                 raise Cart.DoesNotExist
             if not  product:
                 raise ProductCart.DoesNotExist
 
-            #deleting a product
             product.delete()
             return Response({"message": "Product cart was deleted successfully"}, status = status.HTTP_204_NO_CONTENT)
 

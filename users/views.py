@@ -12,22 +12,21 @@ from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from orders.models import Order
-from orders.serializers import OrderSerializer
 from utils.utils import send_email, create_user_profile_settings
 from .models import User, UserProfileSettings
 from .permissions import IsOwnerOrSuperUserPermission, IsOwnerOfProfileSettings
-from .serializers import UserSerializer, CustomTokenObtainPairSerializer, ChangePasswordSerializer, \
-    NewsletterSubscriptionSerializer, UserProfileSettingsSerializer, AdminSerializer
+from .serializers import AdminDashboardSerializer, UserSerializer, CustomTokenObtainPairSerializer, ChangePasswordSerializer, \
+    NewsletterSubscriptionSerializer, UserProfileSettingsSerializer, UploadUsersFileSerializer
 
 
-# login view
+from users.services.handle_excel_file import ExcelUserParser,UsersBulkCreate
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
 class CustomTokenRefreshPairView(TokenRefreshView):
-    ...
+    pass
 
 
 class LogoutUserView(APIView):
@@ -43,17 +42,16 @@ class LogoutUserView(APIView):
             return Response({'message': 'Token no válido.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-#retreve the basic data of the current administrator
-class RetrieveAdminData(APIView):
+#retrieve the basic data of the current administrator
+class AdminDashboardAPIView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        user_serializer = AdminSerializer(request.user)
+        user_serializer = AdminDashboardSerializer(request.user)
         return Response({
             'user': user_serializer.data,
         })
 
-# create a new User instance
 class UserCreateView(APIView):
     '''
     Create a new `User` instance without any special permissions
@@ -320,3 +318,27 @@ class UserProfileSettingsAPIView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserUploadFileAPIView(APIView):
+    #permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        serializer = UploadUsersFileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file = request.data.get('file')
+
+        #lets to create a user by any register inside the xlsx file
+
+        service = ExcelUserParser()
+        result = service.parse(file)
+        response = UsersBulkCreate.execute(result)
+        return Response(response, status = status.HTTP_201_CREATED)
+        
+
+
+
+
+
+
+

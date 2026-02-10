@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import LimitOffsetPagination
@@ -9,10 +8,10 @@ from rest_framework.views import APIView
 
 from products.models import Product, UnitOfMeasure
 from purchases.models import Purchase, PurchaseItem, MissingItems
+from users.models import User
 from purchases.serializers import PurchaseItemSerializer, PurchaseSerializer, MissingItemSerializer
+from purchases.services.bulk_create_stock_movement import RetailSuggestedPriceService, StockMoventSignal
 
-
-# Create your views here.
 class PurchaseDeleteView(APIView):
     """
     Handle purchase deletion
@@ -60,7 +59,7 @@ class PurchaseDetailView(RetrieveAPIView):
     permission_classes = [IsAdminUser]
     queryset = Purchase.objects.all()
     serializer_class = PurchaseSerializer
-    lookup_field = "id"  # Se buscará por el ID de la compra
+    lookup_field = "id"
 
     def get(self, request, *args, **kwargs):
         try:
@@ -92,31 +91,31 @@ class PurchaseCreateUpdateView(APIView):
 
     def post(self, request):
         """Crea una nueva compra."""
-        required_fields = {"purchased_by", "purchase_date", "global_sell_percentage"}
+        required_fields = {"purchase_date", "global_sell_percentage"}
         missing_fields = required_fields - request.data.keys()
         if missing_fields:
             return Response({"error": f"Missing fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        purchased_by = request.data.get("purchased_by")
         global_sell_percentage = request.data.get("global_sell_percentage", 10)  # Default 10%
         if global_sell_percentage < 10:
             return Response({'error': 'Global sell percentage must be at least 10%'}, status=status.HTTP_400_BAD_REQUEST)
         items_data = request.data.get("items", [])
         purchase_date = request.data.get("purchase_date")
-
-        # if not items_data:
-        #     return Response({"error": "At least one purchase item is required."}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        if not items_data:
+            return Response({"error": "At least one purchase item is required."}, status=status.HTTP_400_BAD_REQUEST)
         if len(items_data) > 0:
 
             try:
                 with transaction.atomic():
                     # Crear la compra
                     purchase = Purchase.objects.create(
-                        purchased_by_id=purchased_by,
+                        purchased_by_id=request.user,
                         global_sell_percentage=global_sell_percentage,
                         purchase_date=purchase_date
                     )
 
+                    
 
                     purchase_items = []
                     for item in items_data:
@@ -124,7 +123,7 @@ class PurchaseCreateUpdateView(APIView):
                         quantity = item.get("quantity")
                         purchase_price = item.get("purchase_price")
                         sell_percentage = item.get("sell_percentage")
-                        unit_measure = item.get("unit_measure")
+                        unit_measure = item.get("unity")
 
                         if not all([product_sku, quantity, purchase_price, unit_measure]):
                             return Response(
@@ -134,7 +133,6 @@ class PurchaseCreateUpdateView(APIView):
 
                         product = Product.objects.get(sku=product_sku)
                         unit_measure = UnitOfMeasure.objects.get(pk=unit_measure)
-
                         purchase_items.append(
                             PurchaseItem(
                                 purchase=purchase,
@@ -147,29 +145,30 @@ class PurchaseCreateUpdateView(APIView):
                         )
 
                     PurchaseItem.objects.bulk_create(purchase_items)
+                    movements = StockMoventSignal()
+                    service = RetailSuggestedPriceService()
+                    movements.bulk_create(purchase_items)
+                    service.bulk_create(purchase_items) # We're making a record with suggested prices by product
                     purchase.update_totals()  # Update totals and estimated earnings
 
                     return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
 
-            except Product.DoesNotExist:
-                return Response({"error": "One or more products do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(e)
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             except UnitOfMeasure.DoesNotExist:
                 return Response({"error": "One or more unit measures do not exist."}, status=status.HTTP_400_BAD_REQUEST)
-
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-        
-            print('else path')
-            purchase = Purchase.objects.create(
-                purchased_by_id=purchased_by,
-                global_sell_percentage=global_sell_percentage,
-                purchase_date=purchase_date
-            )
-
-            purchase.update_totals()  # Update totals and estimated earnings
-            return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
+        #
+        # else:       
+        #     purchase = Purchase.objects.create(
+        #         purchased_by_id=purchased_by,
+        #         global_sell_percentage=global_sell_percentage,
+        #         purchase_date=purchase_date
+        #     )
+        #
+        #     purchase.update_totals()  # Update totals and estimated earnings
+        #     return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
         
         
 
