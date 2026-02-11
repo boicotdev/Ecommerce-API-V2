@@ -6,16 +6,16 @@ from django.views.static import serve
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include("users.urls")),
-    path('api/v1/', include('products.urls')),
-    path('api/v1/', include('payments.urls')),
-    path('api/v1/', include('shipments.urls')),
-    path('api/v1/', include('orders.urls')),
-    path('api/v1/', include('purchases.urls')),
-    path('api/v1/', include('carts.urls')),
-    path('api/v1/', include('reviews.urls')),
-    path('api/v1/', include('blog.urls')),
-    path('api/v1/', include('salesreport.urls'))
+    path('api/v2/', include("users.urls")),
+    path('api/v2/', include('products.urls')),
+    path('api/v2/', include('payments.urls')),
+    path('api/v2/', include('shipments.urls')),
+    path('api/v2/', include('orders.urls')),
+    path('api/v2/', include('purchases.urls')),
+    path('api/v2/', include('carts.urls')),
+    path('api/v2/', include('reviews.urls')),
+    path('api/v2/', include('blog.urls')),
+    path('api/v2/', include('salesreport.urls'))
 ]
 
 if settings.DEBUG:

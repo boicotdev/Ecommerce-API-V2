@@ -1,10 +1,12 @@
 import random
 import string
-
+from datetime import datetime
+import uuid
 from django.db import models
 
 from products.models import Product, UnitOfMeasure
 from orders.models import Order
+from users.models import User
 
 
 class Purchase(models.Model):
@@ -23,21 +25,33 @@ class Purchase(models.Model):
     global_sell_percentage = models.FloatField(default=10)  # Global sell percentage
     estimated_profit = models.FloatField(default=0)  # Estimated profit
 
+
     def save(self, *args, **kwargs):
         if not self.id:
-            admin_dni = getattr(self.purchased_by, 'dni', "00000000")
-            self.id = generate_unique_id(admin_dni, purchase="True")
+            self.id = generate_unique_id('000', purchase="True")
         super().save(*args, **kwargs)
 
     def update_totals(self):
         """Recalculates the total purchase amount and the estimated profit."""
         total_cost = sum(item.subtotal() for item in self.purchase_items.all())
-        self.total_amount = total_cost
+        self.total_amount = total_cost + self.additional_costs
         self.estimated_profit = sum(item.estimated_profit() for item in self.purchase_items.all())
         self.save()
 
     def __str__(self):
         return f"Purchase {self.id} | Total: ${self.total_amount} | Profit: ${self.estimated_profit}"
+
+
+class SuggestedRetailPrice(models.Model):
+    purchase_item = models.ForeignKey('PurchaseItem', on_delete=models.CASCADE, blank=True, null=True, related_name='related_product')
+    suggested_price = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+
+    def __str__(self) -> str:
+        return f'{self.purchase_item.product.name} - {self.suggested_price}'
+
+                
+
+        
 
 
 class PurchaseItem(models.Model):
@@ -102,15 +116,11 @@ def generate_unique_id(user_dni, purchase=False):
 
     while True:
         if purchase:
-            prefix = (
-                f"{random.choice(string.ascii_uppercase)}"
-                f"{random.choice(string.ascii_uppercase)}"
-                f"{random.randint(0, 9)}"
-            )
-            unique_id = f"PURCH-AVB{prefix}{str(user_dni)[-4:]}"
-
+            ts = datetime.now().strftime("%Y%m%d%H%M%S")
+            rand = uuid.uuid4().hex[:6].upper()
+            unique_id = f"CMP-{ts}-{rand}"
             if not Purchase.objects.filter(id=unique_id).exists():
-                return unique_id
+                    return unique_id
 
         else:
             # Prefix for orders: AVBXX9YYYYYYYY

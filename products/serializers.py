@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from purchases.models import SuggestedRetailPrice
 from reviews.models import ProductReview
 from reviews.serializers import ProductReviewSerializer
 from users.models import User
@@ -8,8 +8,18 @@ from .models import (
     Category, UnitOfMeasure
 )
 
-class ProductImportSerializer(serializers.Serializer):
+class BaseImportFile(serializers.Serializer):
     file = serializers.FileField()
+
+class SuggestedRetailPriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SuggestedRetailPrice
+        fields = '__all__'
+        depth=2
+
+
+class ProductImportSerializer(BaseImportFile):
+    pass
 
 class UnitOfMeasureSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,6 +1,8 @@
 from django.db import models
 
 options = (
+    
+    # 25 kg  // 500 grs  // purchase_price  = suggested_pricee 
     ("CANASTILLA", "CANASTILLA"),
     ("MANOJO", "MANOJO"),
     ("BULTO", "BULTO"),
@@ -51,10 +53,14 @@ class Product(models.Model):
     weight = models.FloatField(default=0)
     slug = models.SlugField(blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True, null=True)
-
+    unit_of_measurement = models.ForeignKey(UnitOfMeasure, on_delete=models.SET_NULL, blank=True, null=True)
     main_image = models.ImageField(
         upload_to="products/", default="products/dummie_image.jpeg"
     )
 
     def __str__(self):
         return f"Product: {self.name} (SKU: {self.sku}, Stock: {self.stock}, Price: ${self.price})"
+
+
+
+

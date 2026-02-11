@@ -13,7 +13,11 @@ from products.models import Product
 from reviews.models import ProductReview
 from shipments.models import DeliveryAddress, Shipment
 from .models import User, ReferralDiscount, NewsletterSubscription, UserProfileSettings
+from purchases.models import Purchase
 
+
+class UploadUsersFileSerializer(serializers.Serializer):
+    file = serializers.FileField()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
@@ -39,6 +43,23 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['is_superuser'] = self.user.is_superuser
 
         return data
+
+
+class BulkCreateUserSerializer(serializers.ModelSerializer):
+    referral_code = serializers.CharField(required=False)
+    class Meta:
+        model = User
+        fields = [
+            'dni',
+            'first_name',
+            'last_name',
+            'username',
+            'phone',
+            'email',
+            'role',
+            'password',
+            'referral_code'
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -155,16 +176,17 @@ class UserSerializer(serializers.ModelSerializer):
         return total
 
 
-class AdminSerializer(serializers.ModelSerializer):
+class AdminDashboardSerializer(serializers.ModelSerializer):
     orders = serializers.SerializerMethodField(read_only=True)
     revenue = serializers.SerializerMethodField(read_only=True)
     customers = serializers.SerializerMethodField(read_only=True)
+    purchases = serializers.SerializerMethodField(read_only=True)
     active_products = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = ['dni', 'username', 'first_name', 'last_name', 'email', 'role', 'last_login',
-                  'orders', 'revenue', 'customers', 'active_products']
+                  'orders', 'revenue','purchases', 'customers', 'active_products']
 
     def _get_month_range(self, months_ago=0):
         """Devuelve el rango de fechas de un mes anterior"""
@@ -219,8 +241,11 @@ class AdminSerializer(serializers.ModelSerializer):
 
         return self._calculate_change(current, previous, total)
 
+    def get_purchases(self, obj):
+        return Purchase.objects.all().count()
+
     def get_active_products(self, obj):
-        return Product.objects.filter(stock__gt=1).count()
+        return Product.objects.filter(stock__gt=25).count()
     
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
