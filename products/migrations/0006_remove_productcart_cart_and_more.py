@@ -6,26 +6,26 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0005_remove_missingitems_order_and_more'),
+        ("products", "0005_remove_missingitems_order_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='productcart',
-            name='cart',
+            model_name="productcart",
+            name="cart",
         ),
         migrations.RemoveField(
-            model_name='productcart',
-            name='measure_unity',
+            model_name="productcart",
+            name="measure_unity",
         ),
         migrations.RemoveField(
-            model_name='productcart',
-            name='product',
+            model_name="productcart",
+            name="product",
         ),
         migrations.DeleteModel(
-            name='Cart',
+            name="Cart",
         ),
         migrations.DeleteModel(
-            name='ProductCart',
+            name="ProductCart",
         ),
     ]

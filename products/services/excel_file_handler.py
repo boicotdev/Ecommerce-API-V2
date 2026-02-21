@@ -5,7 +5,6 @@ from products.models import Product
 from products.serializers import ProductCreateSerializer
 
 
-
 class ExcelProductParser:
     """
     Parses an Excel (.xlsx) file and returns a list of product dictionaries
@@ -17,15 +16,15 @@ class ExcelProductParser:
         file: InMemoryUploadedFile | TemporaryUploadedFile
         """
         workbook = load_workbook(
-            filename=BytesIO(file.read()),
-            read_only=True,
-            data_only=True
+            filename=BytesIO(file.read()), read_only=True, data_only=True
         )
         sheet = workbook.active
 
         products: list[dict] = []
 
-        for index, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        for index, row in enumerate(
+            sheet.iter_rows(min_row=2, values_only=True), start=2
+        ):
             # Skip empty rows
             if not row or not row[0]:
                 continue
@@ -38,7 +37,7 @@ class ExcelProductParser:
                 "discount_price": float(row[4]) if row[4] else None,
                 "purchase_price": float(row[5]) if row[5] is not None else 0,
                 "stock": int(row[6]) if row[6] is not None else 0,
-                "category":1, #row[7],  # FK id
+                "category": 1,  # row[7],  # FK id
                 "score": int(row[8]) if row[8] else None,
                 "recommended": bool(row[9]) if row[9] is not None else False,
                 "best_seller": bool(row[10]) if row[10] is not None else False,
@@ -59,22 +58,15 @@ class ProductBulkCreateService:
     Class performs a `Model.objects.bulk_create()` operation
     Raise an Exception if the operation can't be performanced
     """
+
     def execute(self, products_data: list[dict]) -> dict:
-        serializer = ProductCreateSerializer(
-            data=products_data,
-            many=True
-        )
+        serializer = ProductCreateSerializer(data=products_data, many=True)
 
         serializer.is_valid(raise_exception=True)
 
-        products = [
-            Product(**data)
-            for data in serializer.validated_data
-        ]
+        products = [Product(**data) for data in serializer.validated_data]
 
         with transaction.atomic():
             Product.objects.bulk_create(products)
 
-        return {
-            "created": len(products)
-        }
+        return {"created": len(products)}

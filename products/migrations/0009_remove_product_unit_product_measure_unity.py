@@ -7,17 +7,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0008_remove_product_first_image_and_more'),
+        ("products", "0008_remove_product_first_image_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='product',
-            name='unit',
+            model_name="product",
+            name="unit",
         ),
         migrations.AddField(
-            model_name='product',
-            name='measure_unity',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure', verbose_name='measure_unity'),
+            model_name="product",
+            name="measure_unity",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.unitofmeasure",
+                verbose_name="measure_unity",
+            ),
         ),
     ]

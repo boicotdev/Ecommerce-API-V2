@@ -1,16 +1,17 @@
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.permissions import BasePermission
 
+
 class AdminPermissions(BasePermission):
     def has_permission(self, request, view):
-        return  request.user.is_authenticated and request.user.is_superuser
-
+        return request.user.is_authenticated and request.user.is_superuser
 
 
 class IsAdminOnly(BasePermission):
     """
     Permiso para permitir solo administradores.
     """
+
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_superuser
 

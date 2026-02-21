@@ -6,38 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='discount_applied',
+            model_name="order",
+            name="discount_applied",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='order',
-            name='discount_type',
-            field=models.CharField(choices=[('REFERRAL', 'Referral'), ('FIRST_PURCHASE', 'First Purchase'), ('COUPON', 'Coupon'), ('SEASONAL', 'Seasonal Promo'), ('NONE', 'No Discount')], default='NONE', max_length=20),
+            model_name="order",
+            name="discount_type",
+            field=models.CharField(
+                choices=[
+                    ("REFERRAL", "Referral"),
+                    ("FIRST_PURCHASE", "First Purchase"),
+                    ("COUPON", "Coupon"),
+                    ("SEASONAL", "Seasonal Promo"),
+                    ("NONE", "No Discount"),
+                ],
+                default="NONE",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='order',
-            name='discount_value',
+            model_name="order",
+            name="discount_value",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
         migrations.AddField(
-            model_name='order',
-            name='shipping_cost',
+            model_name="order",
+            name="shipping_cost",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
         migrations.AddField(
-            model_name='order',
-            name='subtotal',
+            model_name="order",
+            name="subtotal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
         migrations.AddField(
-            model_name='order',
-            name='total',
+            model_name="order",
+            name="total",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
     ]

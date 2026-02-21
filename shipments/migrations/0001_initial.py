@@ -12,39 +12,99 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DeliveryAddress',
+            name="DeliveryAddress",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('street', models.CharField(blank=True, max_length=50, null=True)),
-                ('country', models.CharField(default='Colombia', max_length=30)),
-                ('city', models.CharField(default='Bogotá', max_length=30)),
-                ('zip_code', models.CharField(max_length=10)),
-                ('quarter', models.CharField(max_length=50)),
-                ('recipient', models.CharField(max_length=40)),
-                ('phone', models.CharField(blank=True, max_length=15, null=True)),
-                ('is_default', models.BooleanField(default=False)),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='delivery_address', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("street", models.CharField(blank=True, max_length=50, null=True)),
+                ("country", models.CharField(default="Colombia", max_length=30)),
+                ("city", models.CharField(default="Bogotá", max_length=30)),
+                ("zip_code", models.CharField(max_length=10)),
+                ("quarter", models.CharField(max_length=50)),
+                ("recipient", models.CharField(max_length=40)),
+                ("phone", models.CharField(blank=True, max_length=15, null=True)),
+                ("is_default", models.BooleanField(default=False)),
+                (
+                    "customer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="delivery_address",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Shipment',
+            name="Shipment",
             fields=[
-                ('id', models.CharField(default=shipments.models.set_tracking_number, max_length=100, primary_key=True, serialize=False)),
-                ('shipment_date', models.DateTimeField(auto_now_add=True)),
-                ('shipment_address', models.CharField(max_length=255)),
-                ('shipment_city', models.CharField(max_length=50)),
-                ('shipment_date_post_code', models.CharField(max_length=10, validators=[django.core.validators.RegexValidator(message='El código postal debe contener entre 4 y 10 dígitos.', regex='^\\d{4,10}$')])),
-                ('status', models.CharField(choices=[('PENDING', 'PENDING'), ('SHIPPED', 'SHIPPED'), ('DELIVERED', 'DELIVERED'), ('CANCELLED', 'CANCELLED')], default='PENDING', max_length=10)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shipments', to=settings.AUTH_USER_MODEL)),
-                ('order', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='shipment', to='orders.order')),
+                (
+                    "id",
+                    models.CharField(
+                        default=shipments.models.set_tracking_number,
+                        max_length=100,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("shipment_date", models.DateTimeField(auto_now_add=True)),
+                ("shipment_address", models.CharField(max_length=255)),
+                ("shipment_city", models.CharField(max_length=50)),
+                (
+                    "shipment_date_post_code",
+                    models.CharField(
+                        max_length=10,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="El código postal debe contener entre 4 y 10 dígitos.",
+                                regex="^\\d{4,10}$",
+                            )
+                        ],
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "PENDING"),
+                            ("SHIPPED", "SHIPPED"),
+                            ("DELIVERED", "DELIVERED"),
+                            ("CANCELLED", "CANCELLED"),
+                        ],
+                        default="PENDING",
+                        max_length=10,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "customer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="shipments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "order",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="shipment",
+                        to="orders.order",
+                    ),
+                ),
             ],
         ),
     ]

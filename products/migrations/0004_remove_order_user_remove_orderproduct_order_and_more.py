@@ -7,74 +7,78 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0001_initial'),
-        ('payments', '0002_alter_payment_order'),
-        ('products', '0003_delete_payment'),
-        ('users', '0002_alter_customerinfo_order_alter_customerinfo_shipment'),
+        ("orders", "0001_initial"),
+        ("payments", "0002_alter_payment_order"),
+        ("products", "0003_delete_payment"),
+        ("users", "0002_alter_customerinfo_order_alter_customerinfo_shipment"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='order',
-            name='user',
+            model_name="order",
+            name="user",
         ),
         migrations.RemoveField(
-            model_name='orderproduct',
-            name='order',
+            model_name="orderproduct",
+            name="order",
         ),
         migrations.AlterField(
-            model_name='missingitems',
-            name='order',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pending_order', to='orders.order'),
+            model_name="missingitems",
+            name="order",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="pending_order",
+                to="orders.order",
+            ),
         ),
         migrations.RemoveField(
-            model_name='shipment',
-            name='order',
+            model_name="shipment",
+            name="order",
         ),
         migrations.RemoveField(
-            model_name='orderproduct',
-            name='measure_unity',
+            model_name="orderproduct",
+            name="measure_unity",
         ),
         migrations.RemoveField(
-            model_name='orderproduct',
-            name='product',
+            model_name="orderproduct",
+            name="product",
         ),
         migrations.RemoveField(
-            model_name='purchase',
-            name='purchased_by',
+            model_name="purchase",
+            name="purchased_by",
         ),
         migrations.RemoveField(
-            model_name='purchaseitem',
-            name='purchase',
+            model_name="purchaseitem",
+            name="purchase",
         ),
         migrations.RemoveField(
-            model_name='purchaseitem',
-            name='product',
+            model_name="purchaseitem",
+            name="product",
         ),
         migrations.RemoveField(
-            model_name='purchaseitem',
-            name='unit_measure',
+            model_name="purchaseitem",
+            name="unit_measure",
         ),
         migrations.RemoveField(
-            model_name='shipment',
-            name='customer',
+            model_name="shipment",
+            name="customer",
         ),
         migrations.DeleteModel(
-            name='DeliveryAddress',
+            name="DeliveryAddress",
         ),
         migrations.DeleteModel(
-            name='Order',
+            name="Order",
         ),
         migrations.DeleteModel(
-            name='OrderProduct',
+            name="OrderProduct",
         ),
         migrations.DeleteModel(
-            name='Purchase',
+            name="Purchase",
         ),
         migrations.DeleteModel(
-            name='PurchaseItem',
+            name="PurchaseItem",
         ),
         migrations.DeleteModel(
-            name='Shipment',
+            name="Shipment",
         ),
     ]

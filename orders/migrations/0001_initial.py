@@ -10,30 +10,84 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0003_delete_payment'),
+        ("products", "0003_delete_payment"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.CharField(max_length=20, primary_key=True, serialize=False)),
-                ('creation_date', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('status', models.CharField(choices=[('PENDING', 'PENDING'), ('PROCESSING', 'PROCESSING'), ('SHIPPED', 'SHIPPED'), ('OUT_FOR_DELIVERY', 'OUT_FOR_DELIVERY'), ('DELIVERED', 'DELIVERED'), ('CANCELLED', 'CANCELLED'), ('RETURNED', 'RETURNED'), ('FAILED', 'FAILED'), ('ON_HOLD', 'ON_HOLD')], default='PENDING', max_length=20)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.CharField(max_length=20, primary_key=True, serialize=False),
+                ),
+                ("creation_date", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "PENDING"),
+                            ("PROCESSING", "PROCESSING"),
+                            ("SHIPPED", "SHIPPED"),
+                            ("OUT_FOR_DELIVERY", "OUT_FOR_DELIVERY"),
+                            ("DELIVERED", "DELIVERED"),
+                            ("CANCELLED", "CANCELLED"),
+                            ("RETURNED", "RETURNED"),
+                            ("FAILED", "FAILED"),
+                            ("ON_HOLD", "ON_HOLD"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderProduct',
+            name="OrderProduct",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('price', models.FloatField()),
-                ('quantity', models.IntegerField()),
-                ('measure_unity', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure', verbose_name='unity')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='orders.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("price", models.FloatField()),
+                ("quantity", models.IntegerField()),
+                (
+                    "measure_unity",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="products.unitofmeasure",
+                        verbose_name="unity",
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="orders.order"
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="products.product",
+                    ),
+                ),
             ],
         ),
     ]

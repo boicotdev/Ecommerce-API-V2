@@ -3,12 +3,14 @@ from django.dispatch import receiver
 from orders.models import Order, OrderProduct, StockMovement
 from .models import Purchase, MissingItems, PurchaseItem
 
+
 @receiver(post_save, sender=PurchaseItem)
 def update_purchase_totals(sender, instance, created, **kwargs):
 
     if created:
         purchase = instance.purchase
         purchase.update_totals()
+
 
 @receiver(post_save, sender=PurchaseItem)
 def create_stock_movement_record(sender, instance, created, **kwargs):
@@ -20,17 +22,20 @@ def create_stock_movement_record(sender, instance, created, **kwargs):
     try:
         if created:
             product = instance.product
-            product.stock += instance.quantity #Update the stock of the product generally.
+            product.stock += (
+                instance.quantity
+            )  # Update the stock of the product generally.
             product.save()
             stock_movement = StockMovement(
                 product=product,
-                movement_type = 'IN', #Product is entring to the system
-                quantity = instance.quantity,
-                reason='SOURCING'
+                movement_type="IN",  # Product is entring to the system
+                quantity=instance.quantity,
+                reason="SOURCING",
             )
             stock_movement.save()
     except Exception as e:
         print(e)
+
 
 @receiver(post_save, sender=Purchase)
 def calculate_missing_items(sender, instance, created, **kwargs):
@@ -49,7 +54,9 @@ def calculate_missing_items(sender, instance, created, **kwargs):
                 for op in order_products:
                     product = op.product
                     requested_qty = op.quantity
-                    stock = product.stock  # suponiendo que tu modelo Product tiene este campo
+                    stock = (
+                        product.stock
+                    )  # suponiendo que tu modelo Product tiene este campo
 
                     # Calcular faltantes
                     missing_qty = max(0, requested_qty - stock)
@@ -59,14 +66,15 @@ def calculate_missing_items(sender, instance, created, **kwargs):
                         mi, created = MissingItems.objects.update_or_create(
                             product=product,
                             order=order,
-                            defaults={
-                                "missing_quantity": missing_qty,
-                                "stock": stock
-                            }
+                            defaults={"missing_quantity": missing_qty, "stock": stock},
                         )
                         if created:
-                            print(f"➕ MissingItem creado para '{product.name}' (orden {order.id})")
+                            print(
+                                f"➕ MissingItem creado para '{product.name}' (orden {order.id})"
+                            )
                         else:
-                            print(f"♻️ MissingItem actualizado para '{product.name}' (orden {order.id})")
+                            print(
+                                f"♻️ MissingItem actualizado para '{product.name}' (orden {order.id})"
+                            )
     except Exception as e:
         print(f"❌ Error al calcular productos faltantes: {e}")

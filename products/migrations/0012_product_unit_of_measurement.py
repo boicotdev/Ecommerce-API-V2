@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0011_remove_product_measure_unity_product_weight'),
+        ("products", "0011_remove_product_measure_unity_product_weight"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='unit_of_measurement',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure'),
+            model_name="product",
+            name="unit_of_measurement",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.unitofmeasure",
+            ),
         ),
     ]

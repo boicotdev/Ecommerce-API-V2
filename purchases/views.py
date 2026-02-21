@@ -9,26 +9,46 @@ from rest_framework.views import APIView
 from products.models import Product, UnitOfMeasure
 from purchases.models import Purchase, PurchaseItem, MissingItems
 from users.models import User
-from purchases.serializers import PurchaseItemSerializer, PurchaseSerializer, MissingItemSerializer
-from purchases.services.bulk_create_stock_movement import RetailSuggestedPriceService, StockMoventSignal
+from purchases.serializers import (
+    PurchaseItemSerializer,
+    PurchaseSerializer,
+    MissingItemSerializer,
+)
+from purchases.services.bulk_create_stock_movement import (
+    RetailSuggestedPriceService,
+    StockMoventSignal,
+)
+
 
 class PurchaseDeleteView(APIView):
     """
     Handle purchase deletion
     """
+
     permission_classes = [IsAdminUser]
+
     def delete(self, request):
-        purchase_id = request.data.get('purchase_id')
+        purchase_id = request.data.get("purchase_id")
         if not purchase_id:
-            return Response({'error': 'Purchase ID is missing'}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Purchase ID is missing"}, status.HTTP_400_BAD_REQUEST
+            )
         try:
             purchase = Purchase.objects.get(id=purchase_id)
             purchase.delete()
-            return Response({'message': 'Purchase was deleted successfully'}, status = status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"message": "Purchase was deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
         except Purchase.DoesNotExist:
-            return Response({'error': f'Purchase with ID not found'}, status = status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": f"Purchase with ID not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception as e:
-            return Response({'error': str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PurchaseItemAPIView(APIView):
@@ -43,12 +63,16 @@ class PurchaseItemAPIView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class PurchaseListView(ListAPIView):
     """
     List all purchases
     """
+
     permission_classes = [IsAdminUser]
-    queryset = Purchase.objects.all().order_by("-purchase_date")  # Últimas compras primero
+    queryset = Purchase.objects.all().order_by(
+        "-purchase_date"
+    )  # Últimas compras primero
     serializer_class = PurchaseSerializer
 
 
@@ -56,6 +80,7 @@ class PurchaseDetailView(RetrieveAPIView):
     """
     Retrieve details of a specific purchase
     """
+
     permission_classes = [IsAdminUser]
     queryset = Purchase.objects.all()
     serializer_class = PurchaseSerializer
@@ -67,11 +92,14 @@ class PurchaseDetailView(RetrieveAPIView):
             serializer = self.get_serializer(purchase)
             return Response(serializer.data)
         except Purchase.DoesNotExist:
-            return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class RetrieveMissingItemsView(APIView):
     permission_classes = [IsAdminUser]
+
     def get(self, request):
         try:
             queryset = MissingItems.objects.all()
@@ -80,13 +108,16 @@ class RetrieveMissingItemsView(APIView):
             serializer = MissingItemSerializer(paginated_queryset, many=True)
             return paginator.get_paginated_response(serializer.data)
         except Exception as e:
-            return Response({'message': str(e)}, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PurchaseCreateUpdateView(APIView):
     """
     Handle purchases creation and updates
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request):
@@ -94,16 +125,28 @@ class PurchaseCreateUpdateView(APIView):
         required_fields = {"purchase_date", "global_sell_percentage"}
         missing_fields = required_fields - request.data.keys()
         if missing_fields:
-            return Response({"error": f"Missing fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Missing fields: {', '.join(missing_fields)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        global_sell_percentage = request.data.get("global_sell_percentage", 10)  # Default 10%
+        global_sell_percentage = request.data.get(
+            "global_sell_percentage", 10
+        )  # Default 10%
         if global_sell_percentage < 10:
-            return Response({'error': 'Global sell percentage must be at least 10%'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Global sell percentage must be at least 10%"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         items_data = request.data.get("items", [])
         purchase_date = request.data.get("purchase_date")
+        additional_costs = request.data.get('additional_costs', 0)
         #
         if not items_data:
-            return Response({"error": "At least one purchase item is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "At least one purchase item is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if len(items_data) > 0:
 
             try:
@@ -112,10 +155,10 @@ class PurchaseCreateUpdateView(APIView):
                     purchase = Purchase.objects.create(
                         purchased_by_id=request.user,
                         global_sell_percentage=global_sell_percentage,
-                        purchase_date=purchase_date
+                        purchase_date=purchase_date,
+                        additional_costs = additional_costs,
                     )
-
-                    
+                    purchase.save()
 
                     purchase_items = []
                     for item in items_data:
@@ -125,10 +168,15 @@ class PurchaseCreateUpdateView(APIView):
                         sell_percentage = item.get("sell_percentage")
                         unit_measure = item.get("unity")
 
-                        if not all([product_sku, quantity, purchase_price, unit_measure]):
+                        if not all(
+                            [product_sku, quantity, purchase_price, unit_measure]
+                        ):  
+
                             return Response(
-                                {"error": "Each item must have product, quantity, purchase_price, and unit_measure."},
-                                status=status.HTTP_400_BAD_REQUEST
+                                {
+                                    "error": "Each item must have product, quantity, purchase_price, and unit_measure."
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
                             )
 
                         product = Product.objects.get(sku=product_sku)
@@ -140,7 +188,7 @@ class PurchaseCreateUpdateView(APIView):
                                 quantity=quantity,
                                 purchase_price=purchase_price,
                                 sell_percentage=sell_percentage,
-                                unit_measure=unit_measure
+                                unit_measure=unit_measure,
                             )
                         )
 
@@ -148,48 +196,58 @@ class PurchaseCreateUpdateView(APIView):
                     movements = StockMoventSignal()
                     service = RetailSuggestedPriceService()
                     movements.bulk_create(purchase_items)
-                    service.bulk_create(purchase_items) # We're making a record with suggested prices by product
+                    service.bulk_create(
+                        purchase_items
+                    )  # We're making a record with suggested prices by product
                     purchase.update_totals()  # Update totals and estimated earnings
 
-                    return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
+                    return Response(
+                        PurchaseSerializer(purchase).data,
+                        status=status.HTTP_201_CREATED,
+                    )
 
             except Exception as e:
-                print(e)
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
             except UnitOfMeasure.DoesNotExist:
-                return Response({"error": "One or more unit measures do not exist."}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # else:       
-        #     purchase = Purchase.objects.create(
-        #         purchased_by_id=purchased_by,
-        #         global_sell_percentage=global_sell_percentage,
-        #         purchase_date=purchase_date
-        #     )
-        #
-        #     purchase.update_totals()  # Update totals and estimated earnings
-        #     return Response(PurchaseSerializer(purchase).data, status=status.HTTP_201_CREATED)
-        
-        
+
+                return Response(
+                    {"error": "One or more unit measures do not exist."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
     def put(self, request):
         purchase_id = request.data.get("purchase_id")
 
         if not purchase_id:
-            return Response({"error": "purchase_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "purchase_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             purchase = Purchase.objects.get(id=purchase_id)
         except Purchase.DoesNotExist:
-            return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
-        global_sell_percentage = request.data.get("global_sell_percentage", purchase.global_sell_percentage)
+        global_sell_percentage = request.data.get(
+            "global_sell_percentage", purchase.global_sell_percentage
+        )
         if global_sell_percentage < 10:
-            return Response({'error': 'Global sell percentage must be at least 10%'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Global sell percentage must be at least 10%"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         items_data = request.data.get("items", [])
 
         if not items_data:
-            return Response({"error": "At least one purchase item is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "At least one purchase item is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             with transaction.atomic():
@@ -205,13 +263,17 @@ class PurchaseCreateUpdateView(APIView):
                     product_sku = item.get("product")
                     quantity = item.get("quantity")
                     purchase_price = item.get("purchase_price")
-                    sell_percentage = item.get("sell_percentage", purchase.global_sell_percentage)
+                    sell_percentage = item.get(
+                        "sell_percentage", purchase.global_sell_percentage
+                    )
                     unit_measure = item.get("unity")
 
                     if not all([product_sku, quantity, purchase_price, unit_measure]):
                         return Response(
-                            {"error": "Each item must have product, quantity, purchase_price, and unit_measure."},
-                            status=status.HTTP_400_BAD_REQUEST
+                            {
+                                "error": "Each item must have product, quantity, purchase_price, and unit_measure."
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
                         )
 
                     product = Product.objects.get(sku=product_sku)
@@ -223,20 +285,30 @@ class PurchaseCreateUpdateView(APIView):
                         quantity=quantity,
                         purchase_price=purchase_price,
                         sell_percentage=sell_percentage,
-                        unit_measure=unit_measure
+                        unit_measure=unit_measure,
                     )
                     purchase_items.append(purchase_item)
 
                 PurchaseItem.objects.bulk_create(purchase_items)
                 purchase.update_totals()  # Recalcular totales
 
-                return Response(PurchaseSerializer(purchase).data, status=status.HTTP_200_OK)
+                return Response(
+                    PurchaseSerializer(purchase).data, status=status.HTTP_200_OK
+                )
 
         except Product.DoesNotExist:
-            return Response({"error": "One or more products do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "One or more products do not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         except UnitOfMeasure.DoesNotExist:
-            return Response({"error": "One or more unit measures do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "One or more unit measures do not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

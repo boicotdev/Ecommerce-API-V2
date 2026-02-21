@@ -7,30 +7,59 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0003_alter_order_options'),
-        ('products', '0011_remove_product_measure_unity_product_weight'),
+        ("orders", "0003_alter_order_options"),
+        ("products", "0011_remove_product_measure_unity_product_weight"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='order',
-            options={'ordering': ['-created_at']},
+            name="order",
+            options={"ordering": ["-created_at"]},
         ),
         migrations.RenameField(
-            model_name='order',
-            old_name='creation_date',
-            new_name='created_at',
+            model_name="order",
+            old_name="creation_date",
+            new_name="created_at",
         ),
         migrations.CreateModel(
-            name='StockMovement',
+            name="StockMovement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('movement_type', models.CharField(choices=[('IN', 'IN'), ('OUT', 'OUT'), ('ADJUST', 'ADJUST')], max_length=10)),
-                ('quantity', models.IntegerField()),
-                ('reason', models.CharField(blank=True, max_length=50, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stock_movements', to='products.product')),
-                ('related_order', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='orders.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "movement_type",
+                    models.CharField(
+                        choices=[("IN", "IN"), ("OUT", "OUT"), ("ADJUST", "ADJUST")],
+                        max_length=10,
+                    ),
+                ),
+                ("quantity", models.IntegerField()),
+                ("reason", models.CharField(blank=True, max_length=50, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="stock_movements",
+                        to="products.product",
+                    ),
+                ),
+                (
+                    "related_order",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="orders.order",
+                    ),
+                ),
             ],
         ),
     ]

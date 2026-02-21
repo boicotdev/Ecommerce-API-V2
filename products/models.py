@@ -1,8 +1,7 @@
 from django.db import models
 
 options = (
-    
-    # 25 kg  // 500 grs  // purchase_price  = suggested_pricee 
+    # 25 kg  // 500 grs  // purchase_price  = suggested_pricee
     ("CANASTILLA", "CANASTILLA"),
     ("MANOJO", "MANOJO"),
     ("BULTO", "BULTO"),
@@ -17,6 +16,7 @@ options = (
     ("KG", "KG"),
 )
 
+
 class Category(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=50)
@@ -30,19 +30,21 @@ class UnitOfMeasure(models.Model):
     Represent a measure unity, a product can be related to `UnitOfMeasure`
     Set all choices are required by your application.
     """
+
     unity = models.CharField(max_length=30, choices=options)
     weight = models.IntegerField()
 
     def __str__(self):
         return f"Unit Of Measure {self.unity} | ID {self.id} | Weight {self.weight} Lbs"
 
+
 class Product(models.Model):
     sku = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=1024)
-    price = models.FloatField()
-    discount_price = models.FloatField(blank=True, null=True)
-    purchase_price = models.FloatField(default=0)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount_price = models.DecimalField(max_digits=12,decimal_places=2, blank=True, null=True)
+    purchase_price = models.DecimalField(max_digits=12,decimal_places=2, blank=True, null=True)
     stock = models.PositiveIntegerField(default=1)
     category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL)
     score = models.IntegerField(blank=True, null=True)
@@ -53,14 +55,12 @@ class Product(models.Model):
     weight = models.FloatField(default=0)
     slug = models.SlugField(blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True, null=True)
-    unit_of_measurement = models.ForeignKey(UnitOfMeasure, on_delete=models.SET_NULL, blank=True, null=True)
+    unit_of_measurement = models.ForeignKey(
+        UnitOfMeasure, on_delete=models.SET_NULL, blank=True, null=True
+    )
     main_image = models.ImageField(
         upload_to="products/", default="products/dummie_image.jpeg"
     )
 
     def __str__(self):
         return f"Product: {self.name} (SKU: {self.sku}, Stock: {self.stock}, Price: ${self.price})"
-
-
-
-

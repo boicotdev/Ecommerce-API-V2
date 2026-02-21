@@ -54,8 +54,6 @@ class ProductFilterService:
         if self.options.get("name"):
             filters["name__icontains"] = self.options["name"]
 
-
-
         self.results = self.results.filter(**filters)
 
         return self.results

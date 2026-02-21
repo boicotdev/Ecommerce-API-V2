@@ -10,12 +10,12 @@ from users.models import UserProfileSettings, User
 
 
 def send_email(
-        subject,
-        email,
-        recipient_list,
-        context,
-        template_url: str = "email/newsletter-subscription.html",
-        success_message: str = "Email sent successfully"
+    subject,
+    email,
+    recipient_list,
+    context,
+    template_url: str = "email/newsletter-subscription.html",
+    success_message: str = "Email sent successfully",
 ):
     """
     Prepares and sends an HTML email to a given recipient.
@@ -44,15 +44,12 @@ def send_email(
         email_msg.attach_alternative(html_content, "text/html")
         email_msg.send()
 
-        return Response(
-            {"message": success_message},
-            status=status.HTTP_200_OK
-        )
+        return Response({"message": success_message}, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response(
             {"error": f"Failed to send email: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
@@ -102,10 +99,13 @@ def update_bestseller_status(product, threshold=20):
         None
     """
 
-    total_sales = OrderProduct.objects.filter(
-        product=product,
-        order__status__iexact="PROCESSING"  # or use ~Q(order__status="PENDING") to exclude
-    ).aggregate(total=Sum('quantity'))['total'] or 0
+    total_sales = (
+        OrderProduct.objects.filter(
+            product=product,
+            order__status__iexact="PROCESSING",  # or use ~Q(order__status="PENDING") to exclude
+        ).aggregate(total=Sum("quantity"))["total"]
+        or 0
+    )
 
     if total_sales >= threshold and not product.best_seller:
         product.best_seller = True

@@ -6,22 +6,22 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0004_remove_order_user_remove_orderproduct_order_and_more'),
+        ("products", "0004_remove_order_user_remove_orderproduct_order_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='missingitems',
-            name='order',
+            model_name="missingitems",
+            name="order",
         ),
         migrations.RemoveField(
-            model_name='missingitems',
-            name='product',
+            model_name="missingitems",
+            name="product",
         ),
         migrations.DeleteModel(
-            name='Coupon',
+            name="Coupon",
         ),
         migrations.DeleteModel(
-            name='MissingItems',
+            name="MissingItems",
         ),
     ]

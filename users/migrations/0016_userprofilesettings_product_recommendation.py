@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0015_newslettersubscription'),
+        ("users", "0015_newslettersubscription"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofilesettings',
-            name='product_recommendation',
+            model_name="userprofilesettings",
+            name="product_recommendation",
             field=models.BooleanField(default=False),
         ),
     ]

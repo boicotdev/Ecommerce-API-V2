@@ -3,7 +3,11 @@ from rest_framework import status
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView, Response
-from orders.services.orders_handler import OrdersUploadFileService, OrdersFileParser, OrdersFileSerializer
+from orders.services.orders_handler import (
+    OrdersUploadFileService,
+    OrdersFileParser,
+    OrdersFileSerializer,
+)
 from django.core.exceptions import ValidationError
 from orders.models import Order, OrderProduct
 from orders.serializers import OrderSerializer, OrderProductSerializer
@@ -12,32 +16,30 @@ from products.models import UnitOfMeasure, Product
 from products.permissions import CanViewOrder
 from users.models import User
 
+SHIPPING_COST = 8000
 
-SHIPPING_COST = 5000
 
 class OrdersFileUploadAPIView(APIView):
-    #permission_classes = [IsAdminUser]
+    # permission_classes = [IsAdminUser]
 
     def post(self, request):
-        file = request.data.get('file')
+        file = request.data.get("file")
 
         serializer = OrdersFileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
 
         try:
             file_parser = OrdersFileParser()
             orders, items = file_parser.parse(file)
             service = OrdersUploadFileService()
             results = service.execute(orders, items)
+
             return Response(results, status=status.HTTP_201_CREATED)
         except ValidationError as e:
-            return Response(
-                {"errors": e.messages},
-                status=400
-            )
+            return Response({"errors": e.messages}, status=400)
 
-class AdminOrderCreateView(APIView):
+
+class AdminOrdersAPIView(APIView):
     """
     Create a new `Order` and a new `OrderProduct`.
     If `is_paid` is True in request.data, create a `Payment` and a `Shipment` instance.
@@ -48,62 +50,77 @@ class AdminOrderCreateView(APIView):
 
     def post(self, request):
         data = request.data
-        required_fields = {'client', 'order_items', 'is_paid'}
+        required_fields = {"client", "order_items", "is_paid"}
 
-        shipping_cost = data.get('shipping_cost', SHIPPING_COST)
+        shipping_cost = data.get("shipping_cost", SHIPPING_COST)
 
         # Check if all required fields are present
         if not required_fields.issubset(data):
-            return Response({'message': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "All fields are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Get the user
-        user_id = data['client']
+        user_id = data["client"]
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"message": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         # Check if the user is a superuser
         if user.is_superuser:
-            return Response({'message': 'A superuser cannot create an order for himself.'},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"message": "A superuser cannot create an order for himself."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # Create the Order
         with transaction.atomic():
             order = Order.objects.create(
-                user=user,
-                status="PENDING",
-                shipping_cost=shipping_cost
+                user=user, status="PENDING", shipping_cost=shipping_cost
             )
 
             # Process order items
-            order_items_data = data['order_items']
+            order_items_data = data["order_items"]
             order_items = []
 
             for item in order_items_data:
                 try:
-                    product = Product.objects.get(pk=item['sku'])  # Ajusta el nombre de la clave si es diferente
+                    product = Product.objects.get(
+                        pk=item["sku"]
+                    )  # Ajusta el nombre de la clave si es diferente
                 except Product.DoesNotExist:
-                    return Response({'message': f"Product with ID {item['product_id']} not found"},
-                                    status=status.HTTP_404_NOT_FOUND)
+                    return Response(
+                        {"message": f"Product with ID {item['product_id']} not found"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
 
-                #Validate the unit of measurement if it exists in the data
+                # Validate the unit of measurement if it exists in the data
                 unit = None
-                if 'measure_unity' in item:
+                if "measure_unity" in item:
                     try:
-                        unit = UnitOfMeasure.objects.get(pk=item['measure_unity'])
+                        unit = UnitOfMeasure.objects.get(pk=item["measure_unity"])
                     except UnitOfMeasure.DoesNotExist:
-                        return Response({'message': f"UnitOfMeasure with ID {item['unity']} not found"},
-                                        status=status.HTTP_404_NOT_FOUND)
+                        return Response(
+                            {
+                                "message": f"UnitOfMeasure with ID {item['unity']} not found"
+                            },
+                            status=status.HTTP_404_NOT_FOUND,
+                        )
 
-                order_items.append(OrderProduct(
-                    order=order,
-                    product=product,
-                    quantity=item['quantity'],
-                    price=item['price'],
-                    measure_unity=unit  # We assign the unit of measurement if it exists
-                ))
-            #updating the order totals
+                order_items.append(
+                    OrderProduct(
+                        order=order,
+                        product=product,
+                        quantity=item["quantity"],
+                        price=item["price"],
+                        measure_unity=unit,  # We assign the unit of measurement if it exists
+                    )
+                )
+            # updating the order totals
             sub_total = sum([item.quantity * item.price for item in order_items])
             order.subtotal = sub_total
             order.total = (sub_total - order.discount_value) + order.shipping_cost
@@ -112,46 +129,66 @@ class AdminOrderCreateView(APIView):
             OrderProduct.objects.bulk_create(order_items)
 
         # handle Payment creation
-        if data['is_paid']:
+        if data["is_paid"]:
             payment = Payment.objects.create(
                 order=order,
-                payment_amount=data.get('payment_amount', 0),
+                payment_amount=data.get("payment_amount", 0),
                 payment_date=data.get("payment_date", None),
                 payment_method=data.get("payment_method", "CASH"),
-                payment_status="APPROVED" if data['is_paid'] else "PENDING"
-
+                payment_status="APPROVED" if data["is_paid"] else "PENDING",
             )
             payment.save()
 
-        return Response({'message': 'Order created successfully'}, status=status.HTTP_201_CREATED)
-       
-    def put(self, request):
-        STATUS = ["PENDING", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURNED",
-                  "FAILED", "ON_HOLD"]
+        return Response(
+            {"message": "Order created successfully"}, status=status.HTTP_201_CREATED
+        )
 
-        #TODO: Add an option to update the order items
+    def put(self, request):
+        STATUS = [
+            "PENDING",
+            "PROCESSING",
+            "SHIPPED",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "CANCELLED",
+            "RETURNED",
+            "FAILED",
+            "ON_HOLD",
+        ]
+
+        # TODO: Add an option to update the order items
 
         order_id = request.data.get("order")
         new_status = request.data.get("status")
         if not order_id or not new_status:
-            return Response({"message": "Order ID is missing, try again"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Order ID is missing, try again"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if new_status not in STATUS:
-            return Response({
-                                'message': 'Order status options are - ["PENDING","PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURNED","FAILED","ON_HOLD"]'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "message": 'Order status options are - ["PENDING","PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURNED","FAILED","ON_HOLD"]'
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             order = Order.objects.get(id=order_id)
             serializer = OrderSerializer(order, data=request.data, partial=True)
         except Order.DoesNotExist:
-            return Response({"message": f"Order with ID {order_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"message": f"Order with ID {order_id} not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception as e:
-            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # order list with superuser permissions
     def get(self, request):
         try:
             queryset = Order.objects.all()
@@ -160,29 +197,37 @@ class AdminOrderCreateView(APIView):
             serializer = OrderSerializer(paginated_queryset, many=True)
             return paginator.get_paginated_response(serializer.data)
         except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class OrderCreateView(APIView):
     """
-        Handle all `Order` creation by an anonymous user
-        due the creation of an order is not required that the user is authenticated
+    Handle all `Order` creation by an anonymous user
+    due the creation of an order is not required that the user is authenticated
     """
 
     def post(self, request):
-        initial_order_status = "PENDING" #by default orders are established to PENDING status
+        initial_order_status = (
+            "PENDING"  # by default orders are established to PENDING status
+        )
         status_order = request.data.get("status", None)
-        user_id = request.data.get("user", None)['id']
+        user_id = request.data.get("user", None)["id"]
 
         # check if required fields are fulfilled
         if not status_order or not user_id:
-            return Response({"message": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "All fields are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # check if the given status is valid
         if status_order != initial_order_status:
-            return Response({"message": f"The given status {status_order} isn't valid"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": f"The given status {status_order} isn't valid"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             serializer = OrderSerializer(data=request.data)
@@ -191,8 +236,9 @@ class OrderCreateView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # retrieve all orders of a single user
@@ -202,7 +248,9 @@ class OrderUserList(APIView):
     def get(self, request):
         user_id = request.query_params.get("user", None)
         if not user_id:
-            return Response({"message": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             user = User.objects.get(dni=user_id)
@@ -213,8 +261,9 @@ class OrderUserList(APIView):
             return Response({"message": "User not found"}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-       
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class OrderDashboardDetailsView(APIView):
@@ -223,7 +272,9 @@ class OrderDashboardDetailsView(APIView):
     def get(self, request):
         order_id = request.query_params.get("order", None)
         if not order_id:
-            return Response({"message": "Order ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Order ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             order = Order.objects.get(pk=order_id)
@@ -235,10 +286,14 @@ class OrderDashboardDetailsView(APIView):
             return Response(serializer, status=status.HTTP_200_OK)
 
         except Order.DoesNotExist:
-            return Response({"message": "Order not found"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Order not found"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class OrderProductCreateView(APIView):
@@ -249,7 +304,10 @@ class OrderProductCreateView(APIView):
         product_quantity = request.data.get("quantity", None)
 
         if not order_id or not product_id or not product_price or not product_quantity:
-            return Response({"message": "All fields are required!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "All fields are required!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             order = Order.objects.get(pk=order_id)
@@ -262,12 +320,19 @@ class OrderProductCreateView(APIView):
 
         # handling exceptions
         except Product.DoesNotExist:
-            return Response({"message": "Product doesn't exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Product doesn't exists!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         except Order.DoesNotExist:
-            return Response({"message": "Order doesn't exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Order doesn't exists!"}, status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class CheckOrderStatusView(APIView):
@@ -275,13 +340,22 @@ class CheckOrderStatusView(APIView):
 
     def get(self, request):
         try:
-            order = Order.objects.get(id=request.query_params.get('external_reference'))
+            order = Order.objects.get(id=request.query_params.get("external_reference"))
             payment = Payment.objects.filter(order=order).first()
             if payment.payment_status == "APPROVED":
-                return Response({
-                    'payment_id': payment.payment_id,
-                    'status': payment.payment_status,
-                    'external_reference': order.id}, status=status.HTTP_200_OK)
-            return Response({'details': 'Payment not completed'}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {
+                        "payment_id": payment.payment_id,
+                        "status": payment.payment_status,
+                        "external_reference": order.id,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {"details": "Payment not completed"}, status=status.HTTP_404_NOT_FOUND
+            )
         except Order.DoesNotExist:
-            return Response({'error': 'Not order with the given ID'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Not order with the given ID"},
+                status=status.HTTP_404_NOT_FOUND,
+            )

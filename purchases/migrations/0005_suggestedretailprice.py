@@ -7,16 +7,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('purchases', '0004_remove_purchase_total_purchase_price'),
+        ("purchases", "0004_remove_purchase_total_purchase_price"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SuggestedRetailPrice',
+            name="SuggestedRetailPrice",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('suggested_price', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ('purchase_item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='related_product', to='purchases.purchaseitem')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "suggested_price",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
+                ),
+                (
+                    "purchase_item",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="related_product",
+                        to="purchases.purchaseitem",
+                    ),
+                ),
             ],
         ),
     ]
