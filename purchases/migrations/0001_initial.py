@@ -10,33 +10,76 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0004_remove_order_user_remove_orderproduct_order_and_more'),
+        ("products", "0004_remove_order_user_remove_orderproduct_order_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Purchase',
+            name="Purchase",
             fields=[
-                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
-                ('purchase_date', models.DateTimeField(blank=True, null=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('total_amount', models.FloatField(default=0)),
-                ('global_sell_percentage', models.FloatField(default=10)),
-                ('estimated_profit', models.FloatField(default=0)),
-                ('purchased_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='user_admin', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                ("purchase_date", models.DateTimeField(blank=True, null=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                ("total_amount", models.FloatField(default=0)),
+                ("global_sell_percentage", models.FloatField(default=10)),
+                ("estimated_profit", models.FloatField(default=0)),
+                (
+                    "purchased_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="user_admin",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='PurchaseItem',
+            name="PurchaseItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.IntegerField()),
-                ('purchase_price', models.FloatField()),
-                ('sell_percentage', models.FloatField(blank=True, null=True)),
-                ('product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.product')),
-                ('purchase', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='purchase_items', to='purchases.purchase')),
-                ('unit_measure', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.IntegerField()),
+                ("purchase_price", models.FloatField()),
+                ("sell_percentage", models.FloatField(blank=True, null=True)),
+                (
+                    "product",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="products.product",
+                    ),
+                ),
+                (
+                    "purchase",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="purchase_items",
+                        to="purchases.purchase",
+                    ),
+                ),
+                (
+                    "unit_measure",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="products.unitofmeasure",
+                    ),
+                ),
             ],
         ),
     ]

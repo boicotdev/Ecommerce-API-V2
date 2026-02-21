@@ -11,11 +11,11 @@ class PaymentSerializer(ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = '__all__'
+        fields = "__all__"
         depth = 1
 
 
 class CouponSerializer(ModelSerializer):
     class Meta:
         model = Coupon
-        fields = '__all__'
+        fields = "__all__"

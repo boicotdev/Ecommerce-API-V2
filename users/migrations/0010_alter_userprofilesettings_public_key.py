@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0009_alter_userprofilesettings_public_key_delete_comment'),
+        ("users", "0009_alter_userprofilesettings_public_key_delete_comment"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='userprofilesettings',
-            name='public_key',
-            field=models.CharField(default=' at 0x7365bf97d260>', editable=False, max_length=100),
+            model_name="userprofilesettings",
+            name="public_key",
+            field=models.CharField(
+                default=" at 0x7365bf97d260>", editable=False, max_length=100
+            ),
         ),
     ]

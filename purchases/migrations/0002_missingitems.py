@@ -7,21 +7,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0001_initial'),
-        ('products', '0005_remove_missingitems_order_and_more'),
-        ('purchases', '0001_initial'),
+        ("orders", "0001_initial"),
+        ("products", "0005_remove_missingitems_order_and_more"),
+        ("purchases", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MissingItems',
+            name="MissingItems",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_updated', models.DateTimeField(auto_now_add=True)),
-                ('stock', models.IntegerField(default=1)),
-                ('missing_quantity', models.IntegerField(default=0)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pending_order', to='orders.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='missing_item', to='products.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("last_updated", models.DateTimeField(auto_now_add=True)),
+                ("stock", models.IntegerField(default=1)),
+                ("missing_quantity", models.IntegerField(default=0)),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="pending_order",
+                        to="orders.order",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="missing_item",
+                        to="products.product",
+                    ),
+                ),
             ],
         ),
     ]

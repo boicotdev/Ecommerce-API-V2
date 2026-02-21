@@ -3,28 +3,33 @@ from purchases.models import SuggestedRetailPrice
 from reviews.models import ProductReview
 from reviews.serializers import ProductReviewSerializer
 from users.models import User
-from .models import (
-    Product,
-    Category, UnitOfMeasure
-)
+from .models import Product, Category, UnitOfMeasure
+
 
 class BaseImportFile(serializers.Serializer):
     file = serializers.FileField()
 
+
 class SuggestedRetailPriceSerializer(serializers.ModelSerializer):
+    category = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = SuggestedRetailPrice
-        fields = '__all__'
-        depth=2
+        fields = ['id', 'suggested_price', 'purchase_item', 'category']
+        depth = 2
+
+    def get_category(self, obj):
+        item = obj.purchase_item.product
+        return CategorySerializer(Category.objects.filter(product=item).first()).data
 
 
 class ProductImportSerializer(BaseImportFile):
     pass
 
+
 class UnitOfMeasureSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnitOfMeasure
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
@@ -48,14 +53,18 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "slug",
         ]
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = "__all__"
+        depth = 2
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source="category")
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source="category"
+    )
     category = serializers.SerializerMethodField(read_only=True)
     reviews = serializers.SerializerMethodField(read_only=True)
     weight = serializers.SerializerMethodField(read_only=True)
@@ -71,23 +80,33 @@ class ProductSerializer(serializers.ModelSerializer):
         return ProductReviewSerializer(reviews, many=True).data
 
     def get_weight(self, obj):
-        return {
-            'value': obj.weight,
-            'unit': 'Gramos'
-        }
+        return {"value": obj.weight, "unit": "Gramos"}
 
     class Meta:
         model = Product
         fields = [
-            'name', 'price', 'sku', 'description', 'stock',
-            'category_id', 'recommended', 'best_seller', 'discount_price',
-            'main_image', 'category', 'score', 'reviews', 'tag', 'quality', 'weight'
+            "name",
+            "price",
+            "sku",
+            "description",
+            "stock",
+            "category_id",
+            "recommended",
+            "best_seller",
+            "discount_price",
+            "main_image",
+            "category",
+            "score",
+            "reviews",
+            "tag",
+            "quality",
+            "weight",
         ]
 
     def create(self, validated_data):
         sku = validated_data.pop("sku", None)
         if not sku:
-            raise serializers.ValidationError({'sku': 'This field is required'})
+            raise serializers.ValidationError({"sku": "This field is required"})
         instance = self.Meta.model(**validated_data)
         instance.sku = sku
         instance.save()
@@ -97,4 +116,12 @@ class ProductSerializer(serializers.ModelSerializer):
 class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['dni', 'email', 'username', 'first_name', 'last_name', 'phone', 'avatar']
+        fields = [
+            "dni",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "phone",
+            "avatar",
+        ]

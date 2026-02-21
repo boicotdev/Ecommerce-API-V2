@@ -4,6 +4,7 @@ from django.db.models import Sum, Count
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from orders.models import OrderProduct
 
+
 class StockReportService:
 
     def __init__(self, group_by):
@@ -16,9 +17,7 @@ class StockReportService:
         qs = OrderProduct.objects.filter(
             order__created_at__gte=start_dt,
             order__created_at__lte=end_dt,
-        ).exclude(
-            order__status__in=["CANCELLED", "FAILED"]
-        )
+        ).exclude(order__status__in=["CANCELLED", "FAILED"])
 
         if self.group_by == "day":
             qs = qs.annotate(period=TruncDay("order__created_at"))
@@ -29,9 +28,9 @@ class StockReportService:
 
         return (
             qs.values("period", "product_id", "product__name")
-              .annotate(
-                  total_out=Sum("quantity"),
-                  orders_count=Count("order", distinct=True),
-              )
-              .order_by("period")
+            .annotate(
+                total_out=Sum("quantity"),
+                orders_count=Count("order", distinct=True),
+            )
+            .order_by("period")
         )

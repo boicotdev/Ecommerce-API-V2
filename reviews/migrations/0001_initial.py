@@ -10,39 +10,88 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0006_remove_productcart_cart_and_more'),
-        ('users', '0003_userprofilesettings'),
+        ("products", "0006_remove_productcart_cart_and_more"),
+        ("users", "0003_userprofilesettings"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProductReview',
+            name="ProductReview",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('comment', models.TextField(max_length=600)),
-                ('rating', models.IntegerField(default=1)),
-                ('rated_at', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now_add=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviewed_product', to='products.product')),
-                ('responses', models.ManyToManyField(related_name='user_responses', to='users.comment')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_review', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("comment", models.TextField(max_length=600)),
+                ("rating", models.IntegerField(default=1)),
+                ("rated_at", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now_add=True)),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reviewed_product",
+                        to="products.product",
+                    ),
+                ),
+                (
+                    "responses",
+                    models.ManyToManyField(
+                        related_name="user_responses", to="users.comment"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_review",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ReviewResponse',
+            name="ReviewResponse",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('response', models.TextField(max_length=600)),
-                ('pub_date', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now_add=True)),
-                ('product_review', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reviews.productreview')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("response", models.TextField(max_length=600)),
+                ("pub_date", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now_add=True)),
+                (
+                    "product_review",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="reviews.productreview",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='productreview',
-            name='response',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reviews.reviewresponse'),
+            model_name="productreview",
+            name="response",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="reviews.reviewresponse"
+            ),
         ),
     ]

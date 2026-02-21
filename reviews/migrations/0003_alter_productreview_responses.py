@@ -6,14 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('reviews', '0002_alter_productreview_response_and_more'),
-        ('users', '0008_alter_userprofilesettings_public_key'),
+        ("reviews", "0002_alter_productreview_response_and_more"),
+        ("users", "0008_alter_userprofilesettings_public_key"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='productreview',
-            name='responses',
-            field=models.ManyToManyField(blank=True, related_name='user_responses', to='users.comment'),
+            model_name="productreview",
+            name="responses",
+            field=models.ManyToManyField(
+                blank=True, related_name="user_responses", to="users.comment"
+            ),
         ),
     ]

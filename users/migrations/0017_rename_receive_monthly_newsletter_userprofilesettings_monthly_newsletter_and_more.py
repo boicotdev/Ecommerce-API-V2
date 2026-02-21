@@ -6,23 +6,23 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0016_userprofilesettings_product_recommendation'),
+        ("users", "0016_userprofilesettings_product_recommendation"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='userprofilesettings',
-            old_name='receive_monthly_newsletter',
-            new_name='monthly_newsletter',
+            model_name="userprofilesettings",
+            old_name="receive_monthly_newsletter",
+            new_name="monthly_newsletter",
         ),
         migrations.RenameField(
-            model_name='userprofilesettings',
-            old_name='wants_receive_notifications',
-            new_name='notifications',
+            model_name="userprofilesettings",
+            old_name="wants_receive_notifications",
+            new_name="notifications",
         ),
         migrations.RenameField(
-            model_name='userprofilesettings',
-            old_name='wants_receive_order_updates_notifications',
-            new_name='order_updates_notifications',
+            model_name="userprofilesettings",
+            old_name="wants_receive_order_updates_notifications",
+            new_name="order_updates_notifications",
         ),
     ]

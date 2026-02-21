@@ -10,124 +10,209 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0001_initial'),
+        ("products", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cart',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="cart",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='coupon',
-            name='created_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="coupon",
+            name="created_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='deliveryaddress',
-            name='customer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='delivery_address', to=settings.AUTH_USER_MODEL),
+            model_name="deliveryaddress",
+            name="customer",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="delivery_address",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='order',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="order",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='missingitems',
-            name='order',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pending_order', to='products.order'),
+            model_name="missingitems",
+            name="order",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="pending_order",
+                to="products.order",
+            ),
         ),
         migrations.AddField(
-            model_name='orderproduct',
-            name='order',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.order'),
+            model_name="orderproduct",
+            name="order",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="products.order"
+            ),
         ),
         migrations.AddField(
-            model_name='payment',
-            name='order',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='products.order'),
+            model_name="payment",
+            name="order",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE, to="products.order"
+            ),
         ),
         migrations.AddField(
-            model_name='product',
-            name='category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.category'),
+            model_name="product",
+            name="category",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.category",
+            ),
         ),
         migrations.AddField(
-            model_name='orderproduct',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product'),
+            model_name="orderproduct",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="products.product"
+            ),
         ),
         migrations.AddField(
-            model_name='missingitems',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='missing_item', to='products.product'),
+            model_name="missingitems",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="missing_item",
+                to="products.product",
+            ),
         ),
         migrations.AddField(
-            model_name='productcart',
-            name='cart',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.cart'),
+            model_name="productcart",
+            name="cart",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="products.cart"
+            ),
         ),
         migrations.AddField(
-            model_name='productcart',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product'),
+            model_name="productcart",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="products.product"
+            ),
         ),
         migrations.AddField(
-            model_name='productreview',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product'),
+            model_name="productreview",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="products.product"
+            ),
         ),
         migrations.AddField(
-            model_name='productreview',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="productreview",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='purchase',
-            name='purchased_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='user_admin', to=settings.AUTH_USER_MODEL),
+            model_name="purchase",
+            name="purchased_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="user_admin",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='purchaseitem',
-            name='product',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.product'),
+            model_name="purchaseitem",
+            name="product",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.product",
+            ),
         ),
         migrations.AddField(
-            model_name='purchaseitem',
-            name='purchase',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='purchase_items', to='products.purchase'),
+            model_name="purchaseitem",
+            name="purchase",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="purchase_items",
+                to="products.purchase",
+            ),
         ),
         migrations.AddField(
-            model_name='shipment',
-            name='customer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shipments', to=settings.AUTH_USER_MODEL),
+            model_name="shipment",
+            name="customer",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="shipments",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='shipment',
-            name='order',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='shipment', to='products.order'),
+            model_name="shipment",
+            name="order",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="shipment",
+                to="products.order",
+            ),
         ),
         migrations.AddField(
-            model_name='purchaseitem',
-            name='unit_measure',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure'),
+            model_name="purchaseitem",
+            name="unit_measure",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.unitofmeasure",
+            ),
         ),
         migrations.AddField(
-            model_name='productcart',
-            name='measure_unity',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure', verbose_name='unity'),
+            model_name="productcart",
+            name="measure_unity",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.unitofmeasure",
+                verbose_name="unity",
+            ),
         ),
         migrations.AddField(
-            model_name='product',
-            name='measure_unity',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure', verbose_name='unity'),
+            model_name="product",
+            name="measure_unity",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.unitofmeasure",
+                verbose_name="unity",
+            ),
         ),
         migrations.AddField(
-            model_name='orderproduct',
-            name='measure_unity',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='products.unitofmeasure', verbose_name='unity'),
+            model_name="orderproduct",
+            name="measure_unity",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="products.unitofmeasure",
+                verbose_name="unity",
+            ),
         ),
     ]

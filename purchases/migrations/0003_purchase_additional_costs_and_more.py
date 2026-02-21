@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('purchases', '0002_missingitems'),
+        ("purchases", "0002_missingitems"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='purchase',
-            name='additional_costs',
+            model_name="purchase",
+            name="additional_costs",
             field=models.FloatField(default=0),
         ),
         migrations.AddField(
-            model_name='purchase',
-            name='total_purchase_price',
+            model_name="purchase",
+            name="total_purchase_price",
             field=models.FloatField(default=0),
         ),
     ]

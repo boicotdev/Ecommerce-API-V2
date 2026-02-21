@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class ReportParamsSerializer(serializers.Serializer):
     REPORT_TYPES = (
         ("sales", "Sales"),

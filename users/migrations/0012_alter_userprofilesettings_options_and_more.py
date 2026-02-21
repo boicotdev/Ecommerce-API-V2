@@ -9,32 +9,41 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0011_alter_userprofilesettings_public_key'),
+        ("users", "0011_alter_userprofilesettings_public_key"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='userprofilesettings',
-            options={'verbose_name': 'User Profile Setting', 'verbose_name_plural': 'User Profile Settings'},
+            name="userprofilesettings",
+            options={
+                "verbose_name": "User Profile Setting",
+                "verbose_name_plural": "User Profile Settings",
+            },
         ),
         migrations.AlterField(
-            model_name='userprofilesettings',
-            name='public_key',
-            field=models.CharField(default=uuid.uuid4, editable=False, max_length=100, unique=True),
+            model_name="userprofilesettings",
+            name="public_key",
+            field=models.CharField(
+                default=uuid.uuid4, editable=False, max_length=100, unique=True
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofilesettings',
-            name='referrals_who_was_purchased',
+            model_name="userprofilesettings",
+            name="referrals_who_was_purchased",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='userprofilesettings',
-            name='shares',
+            model_name="userprofilesettings",
+            name="shares",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='userprofilesettings',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile_settings', to=settings.AUTH_USER_MODEL),
+            model_name="userprofilesettings",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="profile_settings",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

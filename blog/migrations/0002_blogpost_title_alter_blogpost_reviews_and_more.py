@@ -6,24 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('blog', '0001_initial'),
+        ("blog", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='blogpost',
-            name='title',
-            field=models.CharField(default='Shopijao Blog', max_length=100),
+            model_name="blogpost",
+            name="title",
+            field=models.CharField(default="Shopijao Blog", max_length=100),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='blogpost',
-            name='reviews',
-            field=models.ManyToManyField(blank=True, to='blog.blogreview'),
+            model_name="blogpost",
+            name="reviews",
+            field=models.ManyToManyField(blank=True, to="blog.blogreview"),
         ),
         migrations.AlterField(
-            model_name='blogpost',
-            name='tags',
-            field=models.ManyToManyField(blank=True, to='blog.tag'),
+            model_name="blogpost",
+            name="tags",
+            field=models.ManyToManyField(blank=True, to="blog.tag"),
         ),
     ]

@@ -16,7 +16,7 @@ class Purchase(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="user_admin"
+        related_name="user_admin",
     )
     additional_costs = models.FloatField(default=0)  # freight, taxes, etc
     purchase_date = models.DateTimeField(auto_now_add=False, blank=True, null=True)
@@ -25,17 +25,18 @@ class Purchase(models.Model):
     global_sell_percentage = models.FloatField(default=10)  # Global sell percentage
     estimated_profit = models.FloatField(default=0)  # Estimated profit
 
-
     def save(self, *args, **kwargs):
         if not self.id:
-            self.id = generate_unique_id('000', purchase="True")
+            self.id = generate_unique_id("000", purchase="True")
         super().save(*args, **kwargs)
 
     def update_totals(self):
         """Recalculates the total purchase amount and the estimated profit."""
         total_cost = sum(item.subtotal() for item in self.purchase_items.all())
         self.total_amount = total_cost + self.additional_costs
-        self.estimated_profit = sum(item.estimated_profit() for item in self.purchase_items.all())
+        self.estimated_profit = sum(
+            item.estimated_profit() for item in self.purchase_items.all()
+        )
         self.save()
 
     def __str__(self):
@@ -43,31 +44,45 @@ class Purchase(models.Model):
 
 
 class SuggestedRetailPrice(models.Model):
-    purchase_item = models.ForeignKey('PurchaseItem', on_delete=models.CASCADE, blank=True, null=True, related_name='related_product')
+    purchase_item = models.ForeignKey(
+        "PurchaseItem",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="related_product",
+    )
     suggested_price = models.DecimalField(default=0, max_digits=12, decimal_places=2)
 
     def __str__(self) -> str:
-        return f'{self.purchase_item.product.name} - {self.suggested_price}'
-
-                
-
-        
+        if self.purchase_item.product is None:
+            return f"Uknown product name - {self.suggested_price}"
+        return f"{self.purchase_item.product.name} - {self.suggested_price}"
 
 
 class PurchaseItem(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name="purchase_items")
-    product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
+    purchase = models.ForeignKey(
+        Purchase, on_delete=models.CASCADE, related_name="purchase_items"
+    )
+    product = models.ForeignKey(
+        Product, blank=True, null=True, on_delete=models.SET_NULL
+    )
     quantity = models.IntegerField()
     purchase_price = models.FloatField()  # Purchase price per item
     sell_percentage = models.FloatField(null=True, blank=True)
-    unit_measure = models.ForeignKey(UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL)
+    unit_measure = models.ForeignKey(
+        UnitOfMeasure, blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     def get_sell_percentage(self):
         """
         Gets the sell percentage:
         uses the item percentage if defined, otherwise uses the Purchase global percentage.
         """
-        return self.sell_percentage if self.sell_percentage is not None else self.purchase.global_sell_percentage
+        return (
+            self.sell_percentage
+            if self.sell_percentage is not None
+            else self.purchase.global_sell_percentage
+        )
 
     def subtotal(self):
         """Calculates the total purchase cost for this product."""
@@ -90,9 +105,14 @@ class PurchaseItem(models.Model):
         sell_percentage = self.get_sell_percentage()
 
         # Apply the sell percentage to the subtotal
-        subtotal_with_margin = self.subtotal() + (self.subtotal() * (sell_percentage / 100))
-        cost_by_grams = subtotal_with_margin / (self.unit_measure.weight * self.quantity)
-        pvsp = cost_by_grams * self.unit_measure.weight #suggested retail price
+        subtotal_with_margin = self.subtotal() + (
+            self.subtotal() * (sell_percentage / 100)
+        )
+        cost_by_grams = subtotal_with_margin / (
+            self.unit_measure.weight * self.quantity
+        )
+        pvsp = cost_by_grams * self.unit_measure.weight  # suggested retail price
+        
         return pvsp
 
     def __str__(self):
@@ -120,7 +140,7 @@ def generate_unique_id(user_dni, purchase=False):
             rand = uuid.uuid4().hex[:6].upper()
             unique_id = f"CMP-{ts}-{rand}"
             if not Purchase.objects.filter(id=unique_id).exists():
-                    return unique_id
+                return unique_id
 
         else:
             # Prefix for orders: AVBXX9YYYYYYYY
@@ -136,14 +156,14 @@ def generate_unique_id(user_dni, purchase=False):
 
 
 class MissingItems(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="missing_item")
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="missing_item"
+    )
     last_updated = models.DateTimeField(auto_now_add=True)
     stock = models.IntegerField(default=1)
     missing_quantity = models.IntegerField(default=0)
     order = models.ForeignKey(
-        'orders.Order',
-        on_delete=models.CASCADE,
-        related_name="pending_order"
+        "orders.Order", on_delete=models.CASCADE, related_name="pending_order"
     )
 
     def __str__(self):

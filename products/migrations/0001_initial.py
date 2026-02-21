@@ -11,169 +11,390 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Cart',
+            name="Cart",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30)),
-                ('description', models.CharField(max_length=100)),
-                ('creation_date', models.DateTimeField(auto_now=True, verbose_name='Cart creation')),
-                ('last_updated', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=30)),
+                ("description", models.CharField(max_length=100)),
+                (
+                    "creation_date",
+                    models.DateTimeField(auto_now=True, verbose_name="Cart creation"),
+                ),
+                ("last_updated", models.DateTimeField(auto_now_add=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30)),
-                ('description', models.CharField(max_length=50)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=30)),
+                ("description", models.CharField(max_length=50)),
             ],
         ),
         migrations.CreateModel(
-            name='Coupon',
+            name="Coupon",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('coupon_code', models.CharField(max_length=15)),
-                ('discount', models.IntegerField()),
-                ('creation_date', models.DateTimeField(auto_now=True)),
-                ('expiration_date', models.DateField()),
-                ('is_active', models.BooleanField(default=True)),
-                ('discount_type', models.CharField(choices=[('PERCENTAGE', 'PERCENTAGE'), ('FIXED', 'FIXED')], max_length=12)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("coupon_code", models.CharField(max_length=15)),
+                ("discount", models.IntegerField()),
+                ("creation_date", models.DateTimeField(auto_now=True)),
+                ("expiration_date", models.DateField()),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "discount_type",
+                    models.CharField(
+                        choices=[("PERCENTAGE", "PERCENTAGE"), ("FIXED", "FIXED")],
+                        max_length=12,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='DeliveryAddress',
+            name="DeliveryAddress",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('street', models.CharField(blank=True, max_length=50, null=True)),
-                ('country', models.CharField(default='Colombia', max_length=30)),
-                ('city', models.CharField(default='Bogotá', max_length=30)),
-                ('zip_code', models.CharField(max_length=10)),
-                ('quarter', models.CharField(max_length=50)),
-                ('recipient', models.CharField(max_length=40)),
-                ('phone', models.CharField(blank=True, max_length=15, null=True)),
-                ('is_default', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("street", models.CharField(blank=True, max_length=50, null=True)),
+                ("country", models.CharField(default="Colombia", max_length=30)),
+                ("city", models.CharField(default="Bogotá", max_length=30)),
+                ("zip_code", models.CharField(max_length=10)),
+                ("quarter", models.CharField(max_length=50)),
+                ("recipient", models.CharField(max_length=40)),
+                ("phone", models.CharField(blank=True, max_length=15, null=True)),
+                ("is_default", models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
-            name='MissingItems',
+            name="MissingItems",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_updated', models.DateTimeField(auto_now_add=True)),
-                ('stock', models.IntegerField(default=1)),
-                ('missing_quantity', models.IntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("last_updated", models.DateTimeField(auto_now_add=True)),
+                ("stock", models.IntegerField(default=1)),
+                ("missing_quantity", models.IntegerField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.CharField(max_length=20, primary_key=True, serialize=False)),
-                ('creation_date', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('status', models.CharField(choices=[('PENDING', 'PENDING'), ('PROCESSING', 'PROCESSING'), ('SHIPPED', 'SHIPPED'), ('OUT_FOR_DELIVERY', 'OUT_FOR_DELIVERY'), ('DELIVERED', 'DELIVERED'), ('CANCELLED', 'CANCELLED'), ('RETURNED', 'RETURNED'), ('FAILED', 'FAILED'), ('ON_HOLD', 'ON_HOLD')], default='PENDING', max_length=20)),
+                (
+                    "id",
+                    models.CharField(max_length=20, primary_key=True, serialize=False),
+                ),
+                ("creation_date", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "PENDING"),
+                            ("PROCESSING", "PROCESSING"),
+                            ("SHIPPED", "SHIPPED"),
+                            ("OUT_FOR_DELIVERY", "OUT_FOR_DELIVERY"),
+                            ("DELIVERED", "DELIVERED"),
+                            ("CANCELLED", "CANCELLED"),
+                            ("RETURNED", "RETURNED"),
+                            ("FAILED", "FAILED"),
+                            ("ON_HOLD", "ON_HOLD"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderProduct',
+            name="OrderProduct",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('price', models.FloatField()),
-                ('quantity', models.IntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("price", models.FloatField()),
+                ("quantity", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='Payment',
+            name="Payment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('payment_date', models.DateTimeField(auto_created=True)),
-                ('payment_amount', models.FloatField(verbose_name='payment_amount')),
-                ('payment_method', models.CharField(choices=[('CASH', 'CASH'), ('DEBIT_CARD', 'DEBIT_CARD'), ('CREDIT_CARD', 'CREDIT_CARD'), ('BANK_TRANSFER', 'BANK_TRANSFER'), ('NEQUI', 'NEQUI')], max_length=15)),
-                ('payment_status', models.CharField(choices=[('APPROVED', 'APPROVED'), ('PENDING', 'PENDING'), ('IN_PROCESS', 'IN_PROCESS'), ('REJECTED', 'REJECTED'), ('CANCELED', 'CANCELED'), ('REFUNDED', 'REFUNDED'), ('CHARGED_BACK', 'CHARGED_BACK')], max_length=20)),
-                ('last_updated', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("payment_date", models.DateTimeField(auto_created=True)),
+                ("payment_amount", models.FloatField(verbose_name="payment_amount")),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("CASH", "CASH"),
+                            ("DEBIT_CARD", "DEBIT_CARD"),
+                            ("CREDIT_CARD", "CREDIT_CARD"),
+                            ("BANK_TRANSFER", "BANK_TRANSFER"),
+                            ("NEQUI", "NEQUI"),
+                        ],
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "payment_status",
+                    models.CharField(
+                        choices=[
+                            ("APPROVED", "APPROVED"),
+                            ("PENDING", "PENDING"),
+                            ("IN_PROCESS", "IN_PROCESS"),
+                            ("REJECTED", "REJECTED"),
+                            ("CANCELED", "CANCELED"),
+                            ("REFUNDED", "REFUNDED"),
+                            ("CHARGED_BACK", "CHARGED_BACK"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("last_updated", models.DateTimeField(auto_now_add=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Product',
+            name="Product",
             fields=[
-                ('sku', models.CharField(max_length=30, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=20)),
-                ('description', models.TextField(max_length=1024)),
-                ('price', models.FloatField()),
-                ('stock', models.IntegerField(default=1)),
-                ('rank', models.IntegerField(default=0)),
-                ('recommended', models.BooleanField(default=False)),
-                ('best_seller', models.BooleanField(default=False)),
-                ('score', models.IntegerField(blank=True, null=True)),
-                ('slug', models.SlugField(blank=True, null=True)),
-                ('has_discount', models.BooleanField(blank=True, default=False, null=True)),
-                ('purchase_price', models.FloatField(blank=True, default=0, null=True)),
-                ('discount_price', models.FloatField(blank=True, default=0, null=True)),
-                ('last_updated', models.DateTimeField(auto_now_add=True, null=True)),
-                ('main_image', models.ImageField(default='products/dummie_image.jpeg', upload_to='products/')),
-                ('first_image', models.ImageField(default='products/dummie_image.jpeg', upload_to='products/')),
-                ('second_image', models.ImageField(default='products/dummie_image.jpeg', upload_to='products/')),
+                (
+                    "sku",
+                    models.CharField(max_length=30, primary_key=True, serialize=False),
+                ),
+                ("name", models.CharField(max_length=20)),
+                ("description", models.TextField(max_length=1024)),
+                ("price", models.FloatField()),
+                ("stock", models.IntegerField(default=1)),
+                ("rank", models.IntegerField(default=0)),
+                ("recommended", models.BooleanField(default=False)),
+                ("best_seller", models.BooleanField(default=False)),
+                ("score", models.IntegerField(blank=True, null=True)),
+                ("slug", models.SlugField(blank=True, null=True)),
+                (
+                    "has_discount",
+                    models.BooleanField(blank=True, default=False, null=True),
+                ),
+                ("purchase_price", models.FloatField(blank=True, default=0, null=True)),
+                ("discount_price", models.FloatField(blank=True, default=0, null=True)),
+                ("last_updated", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "main_image",
+                    models.ImageField(
+                        default="products/dummie_image.jpeg", upload_to="products/"
+                    ),
+                ),
+                (
+                    "first_image",
+                    models.ImageField(
+                        default="products/dummie_image.jpeg", upload_to="products/"
+                    ),
+                ),
+                (
+                    "second_image",
+                    models.ImageField(
+                        default="products/dummie_image.jpeg", upload_to="products/"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ProductCart',
+            name="ProductCart",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.IntegerField(default=1)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.IntegerField(default=1)),
             ],
         ),
         migrations.CreateModel(
-            name='ProductReview',
+            name="ProductReview",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('review', models.TextField(max_length=525)),
-                ('rank', models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])),
-                ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('last_updated', models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("review", models.TextField(max_length=525)),
+                (
+                    "rank",
+                    models.IntegerField(
+                        choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")]
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, null=True)),
+                ("last_updated", models.DateTimeField(auto_now_add=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Purchase',
+            name="Purchase",
             fields=[
-                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
-                ('purchase_date', models.DateTimeField(blank=True, null=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('total_amount', models.FloatField(default=0)),
-                ('global_sell_percentage', models.FloatField(default=10)),
-                ('estimated_profit', models.FloatField(default=0)),
+                (
+                    "id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                ("purchase_date", models.DateTimeField(blank=True, null=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                ("total_amount", models.FloatField(default=0)),
+                ("global_sell_percentage", models.FloatField(default=10)),
+                ("estimated_profit", models.FloatField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='PurchaseItem',
+            name="PurchaseItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.IntegerField()),
-                ('purchase_price', models.FloatField()),
-                ('sell_percentage', models.FloatField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.IntegerField()),
+                ("purchase_price", models.FloatField()),
+                ("sell_percentage", models.FloatField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Shipment',
+            name="Shipment",
             fields=[
-                ('id', models.CharField(default=shipments.models.set_tracking_number, max_length=100, primary_key=True, serialize=False)),
-                ('shipment_date', models.DateTimeField(auto_now_add=True)),
-                ('shipment_address', models.CharField(max_length=255)),
-                ('shipment_city', models.CharField(max_length=50)),
-                ('shipment_date_post_code', models.CharField(max_length=10, validators=[django.core.validators.RegexValidator(message='El código postal debe contener entre 4 y 10 dígitos.', regex='^\\d{4,10}$')])),
-                ('status', models.CharField(choices=[('PENDING', 'PENDING'), ('SHIPPED', 'SHIPPED'), ('DELIVERED', 'DELIVERED'), ('CANCELLED', 'CANCELLED')], default='PENDING', max_length=10)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.CharField(
+                        default=shipments.models.set_tracking_number,
+                        max_length=100,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("shipment_date", models.DateTimeField(auto_now_add=True)),
+                ("shipment_address", models.CharField(max_length=255)),
+                ("shipment_city", models.CharField(max_length=50)),
+                (
+                    "shipment_date_post_code",
+                    models.CharField(
+                        max_length=10,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="El código postal debe contener entre 4 y 10 dígitos.",
+                                regex="^\\d{4,10}$",
+                            )
+                        ],
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "PENDING"),
+                            ("SHIPPED", "SHIPPED"),
+                            ("DELIVERED", "DELIVERED"),
+                            ("CANCELLED", "CANCELLED"),
+                        ],
+                        default="PENDING",
+                        max_length=10,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='UnitOfMeasure',
+            name="UnitOfMeasure",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('unity', models.CharField(choices=[('CANASTILLA', 'CANASTILLA'), ('MANOJO', 'MANOJO'), ('BULTO', 'BULTO'), ('CAJA', 'CAJA'), ('ATADOS', 'ATADOS'), ('DOCENA', 'DOCENA'), ('BOLSAS', 'BOLSAS'), ('GUACAL', 'GUACAL'), ('BANDEJA', 'BANDEJA'), ('ESTUCHE', 'ESTUCHE'), ('PONY', 'PONY'), ('KG', 'KG')], max_length=30)),
-                ('weight', models.IntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "unity",
+                    models.CharField(
+                        choices=[
+                            ("CANASTILLA", "CANASTILLA"),
+                            ("MANOJO", "MANOJO"),
+                            ("BULTO", "BULTO"),
+                            ("CAJA", "CAJA"),
+                            ("ATADOS", "ATADOS"),
+                            ("DOCENA", "DOCENA"),
+                            ("BOLSAS", "BOLSAS"),
+                            ("GUACAL", "GUACAL"),
+                            ("BANDEJA", "BANDEJA"),
+                            ("ESTUCHE", "ESTUCHE"),
+                            ("PONY", "PONY"),
+                            ("KG", "KG"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("weight", models.IntegerField()),
             ],
         ),
     ]

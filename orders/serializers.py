@@ -11,19 +11,35 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderProduct
-        fields = ['id', 'product', 'price', 'quantity']
+        fields = ["id", "product", "price", "quantity"]
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    products = OrderProductSerializer(source='orderproduct_set', many=True, read_only=True)
+    products = OrderProductSerializer(
+        source="orderproduct_set", many=True, read_only=True
+    )
     payment = PaymentSerializer()
-    shipping_details = ShipmentSerializer(source='shipment', read_only=True)
+    shipping_details = ShipmentSerializer(source="shipment", read_only=True)
     user_details = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'user_details', 'payment', 'created_at', 'last_updated', 'status',
-                  'products', 'subtotal', 'total', 'discount_applied', 'discount_value', 'discount_type', 'shipping_details', 'shipping_cost']
+        fields = [
+            "id",
+            "user_details",
+            "payment",
+            "created_at",
+            "last_updated",
+            "status",
+            "products",
+            "subtotal",
+            "total",
+            "discount_applied",
+            "discount_value",
+            "discount_type",
+            "shipping_details",
+            "shipping_cost",
+        ]
 
     def get_user_details(self, obj):
         user = obj.user

@@ -8,51 +8,70 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0012_alter_userprofilesettings_options_and_more'),
+        ("users", "0012_alter_userprofilesettings_options_and_more"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='user',
-            old_name='rol',
-            new_name='role',
+            model_name="user",
+            old_name="rol",
+            new_name="role",
         ),
         migrations.RemoveField(
-            model_name='userprofilesettings',
-            name='has_regard',
+            model_name="userprofilesettings",
+            name="has_regard",
         ),
         migrations.RemoveField(
-            model_name='userprofilesettings',
-            name='public_key',
+            model_name="userprofilesettings",
+            name="public_key",
         ),
         migrations.RemoveField(
-            model_name='userprofilesettings',
-            name='referrals_who_was_purchased',
+            model_name="userprofilesettings",
+            name="referrals_who_was_purchased",
         ),
         migrations.RemoveField(
-            model_name='userprofilesettings',
-            name='shares',
+            model_name="userprofilesettings",
+            name="shares",
         ),
         migrations.AddField(
-            model_name='user',
-            name='referral_code',
+            model_name="user",
+            name="referral_code",
             field=models.CharField(blank=True, max_length=10, unique=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='referred_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="user",
+            name="referred_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.CreateModel(
-            name='ReferralDiscount',
+            name="ReferralDiscount",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('has_discount', models.BooleanField(default=False)),
-                ('expires_at', models.DateTimeField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("has_discount", models.BooleanField(default=False)),
+                ("expires_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.DeleteModel(
-            name='CustomerInfo',
+            name="CustomerInfo",
         ),
     ]

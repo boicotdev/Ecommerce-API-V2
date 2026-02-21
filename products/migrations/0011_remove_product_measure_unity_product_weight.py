@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0010_product_quality_product_tag'),
+        ("products", "0010_product_quality_product_tag"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='product',
-            name='measure_unity',
+            model_name="product",
+            name="measure_unity",
         ),
         migrations.AddField(
-            model_name='product',
-            name='weight',
+            model_name="product",
+            name="weight",
             field=models.FloatField(default=0),
         ),
     ]

@@ -9,20 +9,59 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0003_delete_payment'),
+        ("products", "0003_delete_payment"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Payment',
+            name="Payment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('payment_date', models.DateTimeField(auto_created=True)),
-                ('payment_amount', models.FloatField(verbose_name='payment_amount')),
-                ('payment_method', models.CharField(choices=[('CASH', 'CASH'), ('DEBIT_CARD', 'DEBIT_CARD'), ('CREDIT_CARD', 'CREDIT_CARD'), ('BANK_TRANSFER', 'BANK_TRANSFER'), ('NEQUI', 'NEQUI')], max_length=15)),
-                ('payment_status', models.CharField(choices=[('APPROVED', 'APPROVED'), ('PENDING', 'PENDING'), ('IN_PROCESS', 'IN_PROCESS'), ('REJECTED', 'REJECTED'), ('CANCELED', 'CANCELED'), ('REFUNDED', 'REFUNDED'), ('CHARGED_BACK', 'CHARGED_BACK')], max_length=20)),
-                ('last_updated', models.DateTimeField(auto_now_add=True, null=True)),
-                ('order', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='products.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("payment_date", models.DateTimeField(auto_created=True)),
+                ("payment_amount", models.FloatField(verbose_name="payment_amount")),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("CASH", "CASH"),
+                            ("DEBIT_CARD", "DEBIT_CARD"),
+                            ("CREDIT_CARD", "CREDIT_CARD"),
+                            ("BANK_TRANSFER", "BANK_TRANSFER"),
+                            ("NEQUI", "NEQUI"),
+                        ],
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "payment_status",
+                    models.CharField(
+                        choices=[
+                            ("APPROVED", "APPROVED"),
+                            ("PENDING", "PENDING"),
+                            ("IN_PROCESS", "IN_PROCESS"),
+                            ("REJECTED", "REJECTED"),
+                            ("CANCELED", "CANCELED"),
+                            ("REFUNDED", "REFUNDED"),
+                            ("CHARGED_BACK", "CHARGED_BACK"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("last_updated", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "order",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE, to="products.order"
+                    ),
+                ),
             ],
         ),
     ]

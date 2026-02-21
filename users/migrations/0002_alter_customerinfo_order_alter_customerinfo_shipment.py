@@ -7,20 +7,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0001_initial'),
-        ('shipments', '0001_initial'),
-        ('users', '0001_initial'),
+        ("orders", "0001_initial"),
+        ("shipments", "0001_initial"),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customerinfo',
-            name='order',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='customer_info', to='orders.order'),
+            model_name="customerinfo",
+            name="order",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="customer_info",
+                to="orders.order",
+            ),
         ),
         migrations.AlterField(
-            model_name='customerinfo',
-            name='shipment',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='customer_info', to='shipments.shipment'),
+            model_name="customerinfo",
+            name="shipment",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="customer_info",
+                to="shipments.shipment",
+            ),
         ),
     ]

@@ -8,22 +8,44 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('payments', '0002_alter_payment_order'),
+        ("payments", "0002_alter_payment_order"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Coupon',
+            name="Coupon",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('coupon_code', models.CharField(max_length=15)),
-                ('discount', models.IntegerField()),
-                ('creation_date', models.DateTimeField(auto_now=True)),
-                ('expiration_date', models.DateField()),
-                ('is_active', models.BooleanField(default=True)),
-                ('discount_type', models.CharField(choices=[('PERCENTAGE', 'PERCENTAGE'), ('FIXED', 'FIXED')], max_length=12)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("coupon_code", models.CharField(max_length=15)),
+                ("discount", models.IntegerField()),
+                ("creation_date", models.DateTimeField(auto_now=True)),
+                ("expiration_date", models.DateField()),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "discount_type",
+                    models.CharField(
+                        choices=[("PERCENTAGE", "PERCENTAGE"), ("FIXED", "FIXED")],
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

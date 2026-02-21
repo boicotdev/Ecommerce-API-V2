@@ -1,5 +1,6 @@
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 
+
 class BaseReportService:
 
     def __init__(self, queryset, group_by):

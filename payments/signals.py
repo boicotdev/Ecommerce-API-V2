@@ -4,9 +4,8 @@ from orders.models import OrderProduct, StockMovement
 from payments.models import Payment
 
 
-
 @receiver(post_save, sender=Payment)
-def save_stock_movement(sender, instance,created, **kwargs):
+def save_stock_movement(sender, instance, created, **kwargs):
     if created:
         order = instance.order
         order_products = OrderProduct.objects.filter(order=order)
@@ -17,10 +16,10 @@ def save_stock_movement(sender, instance,created, **kwargs):
             stock_movements.append(
                 StockMovement(
                     product=product,
-                    movement_type='OUT',
+                    movement_type="OUT",
                     quantity=op.quantity,
-                    reason='SALE',
-                    related_order=order
+                    reason="SALE",
+                    related_order=order,
                 )
             )
 

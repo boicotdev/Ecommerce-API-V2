@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0009_remove_product_unit_product_measure_unity'),
+        ("products", "0009_remove_product_unit_product_measure_unity"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='quality',
-            field=models.CharField(default='segunda', max_length=15),
+            model_name="product",
+            name="quality",
+            field=models.CharField(default="segunda", max_length=15),
         ),
         migrations.AddField(
-            model_name='product',
-            name='tag',
-            field=models.CharField(default='Cultivo tradicional', max_length=60),
+            model_name="product",
+            name="tag",
+            field=models.CharField(default="Cultivo tradicional", max_length=60),
         ),
     ]
