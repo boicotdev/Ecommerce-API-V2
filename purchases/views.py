@@ -181,16 +181,17 @@ class PurchaseCreateUpdateView(APIView):
 
                         product = Product.objects.get(sku=product_sku)
                         unit_measure = UnitOfMeasure.objects.get(pk=unit_measure)
+
                         purchase_items.append(
-                            PurchaseItem(
-                                purchase=purchase,
-                                product=product,
-                                quantity=quantity,
-                                purchase_price=purchase_price,
-                                sell_percentage=sell_percentage,
-                                unit_measure=unit_measure,
-                            )
-                        )
+                                PurchaseItem(
+                                    purchase=purchase,
+                                    product=product,
+                                    quantity=quantity,
+                                    purchase_price=purchase_price,
+                                    sell_percentage=sell_percentage,
+                                    unit_measure=unit_measure,
+                                    )
+                                )
 
                     PurchaseItem.objects.bulk_create(purchase_items)
                     movements = StockMoventSignal()
@@ -207,6 +208,7 @@ class PurchaseCreateUpdateView(APIView):
                     )
 
             except Exception as e:
+                print(e)
                 return Response(
                     {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )

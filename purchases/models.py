@@ -41,6 +41,10 @@ class Purchase(models.Model):
 
     def __str__(self):
         return f"Purchase {self.id} | Total: ${self.total_amount} | Profit: ${self.estimated_profit}"
+    
+    class Meta:
+        ordering = ['-purchase_date']
+
 
 
 class SuggestedRetailPrice(models.Model):
@@ -57,6 +61,7 @@ class SuggestedRetailPrice(models.Model):
         if self.purchase_item.product is None:
             return f"Uknown product name - {self.suggested_price}"
         return f"{self.purchase_item.product.name} - {self.suggested_price}"
+
 
 
 class PurchaseItem(models.Model):
@@ -86,7 +91,7 @@ class PurchaseItem(models.Model):
 
     def subtotal(self):
         """Calculates the total purchase cost for this product."""
-        return self.quantity * self.purchase_price
+        return self.quantity * float(self.purchase_price)
 
     def estimated_profit(self):
         """Calculates the estimated profit based on the sell percentage."""

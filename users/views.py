@@ -67,11 +67,15 @@ class AdminDashboardAPIView(APIView):
         )
 
 
-class UserCreateView(APIView):
+
+class UserDashboardAPIView(APIView):
     """
     Create a new `User` instance without any special permissions
     Any user can use this view to create an account
     """
+
+    parser_classes = [MultiPartParser, JSONParser, FormParser]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         required_fields = {"dni", "username", "email"}
@@ -123,7 +127,80 @@ class UserCreateView(APIView):
                 "email/welcome-email.html",
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, dni):
+        try:
+            user = get_object_or_404(User, pk=dni)
+            user.delete()
+            return Response(
+                {"message": "User was deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Exception as e:
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class UserCreateView(APIView):
+    """
+    Create a new `User` instance without any special permissions
+    Any user can use this view to create an account
+    """
+
+    parser_classes = [MultiPartParser, JSONParser, FormParser]
+
+    def post(self, request):
+        required_fields = {"dni", "username", "email"}
+
+        data = request.data
+        missing_fields = required_fields - data.keys()
+
+        if missing_fields:
+            return Response(
+                {"error": f"Missing required fields: {', '.join(missing_fields)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # check if a User with the referral_code exists
+        if request.data.get("referral_code"):
+            try:
+                User.objects.get(referral_code=request.data.get("referral_code"))
+            except User.DoesNotExist:
+                return Response(
+                    {"error": "User with referral_code not found!"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        # check if user with some required fields already exists.
+        for field in required_fields:
+            value = data.get(field)
+            if value and User.objects.filter(**{field: value}).exists():
+                return Response(
+                    {"error": f'A user with {field} "{value}" already exists.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = UserSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            context = {
+                "user": request.data.get("first_name"),
+                "subscriber_name": request.data.get("email"),
+                "site_url": "https://avoberry.vercel.app/",
+                "year": datetime.datetime.now().year,
+            }
+            # handle user profile settings
+            create_user_profile_settings(request.data.get("dni"))
+            send_email(
+                "Bienvenido a Fruta Andina",
+                request.data.get("email"),
+                [],
+                context,
+                "email/welcome-email.html",
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -152,37 +229,6 @@ class UserDetailsView(APIView):
             )
 
 
-# # update a single user
-# class UserUpdateView(APIView):
-#     """
-#     API view to update a single User instance.
-#     - You must provide the `dni` of the user to be updated in the payload.
-#     - Accepts multipart/form-data for file uploads (e.g., avatar).
-#     """
-#     permission_classes = [IsAuthenticated]
-#     parser_classes = [MultiPartParser, FormParser, JSONParser]
-#
-#     def put(self, request):
-#         dni = request.data.get('dni')
-#
-#         if not dni:
-#             return Response(
-#                 {"error": "Field 'dni' is required."},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-#
-#         # Attempt to retrieve the user or return 404
-#         user = get_object_or_404(User, dni=dni)
-#
-#         # Deserialize and validate the incoming data
-#         serializer = UserSerializer(user, data=request.data, partial=True)
-#
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
 
 
 class ClientUserListView(APIView):
@@ -202,8 +248,11 @@ class ClientUserListView(APIView):
 
 
 class UserUpdateView(APIView):
+
     """
-    Actualiza un usuario existente por su DNI.
+    API view to update a single User instance.
+    - You must provide the `dni` of the user to be updated in the payload.
+    - Accepts multipart/form-data for file uploads (e.g., avatar).
     """
 
     permission_classes = [IsAuthenticated]

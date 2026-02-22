@@ -52,6 +52,7 @@ def calculate_missing_items(sender, instance, created, **kwargs):
                 order_products = OrderProduct.objects.filter(order=order)
 
                 for op in order_products:
+
                     product = op.product
                     requested_qty = op.quantity
                     stock = (

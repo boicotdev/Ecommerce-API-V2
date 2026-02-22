@@ -13,6 +13,7 @@ from .views import (
     NewsletterSubscriptionView,
     UserProfileSettingsAPIView,
     AdminDashboardAPIView,
+    UserDashboardAPIView,
     UserUploadFileAPIView,
 )
 
@@ -22,6 +23,8 @@ urlpatterns = [
     path("users/data/", AdminDashboardAPIView.as_view()),  # retrieve admin data
     path("users/logout/", LogoutUserView.as_view()),  # kill a user session
     path("users/create/", UserCreateView.as_view()),  # create a new user
+    path("dashboard/users/create/", UserDashboardAPIView.as_view()),  # create a new user
+    path("dashboard/users/delete/<str:dni>/", UserDashboardAPIView.as_view()),  # create a new user
     path(
         "dashboard/customers/", ClientUserListView.as_view()
     ),  # retrieve all user clients
